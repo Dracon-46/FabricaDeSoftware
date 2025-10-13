@@ -1,22 +1,25 @@
-// filepath: c:\Users\Arthur\FabricaDeSoftware\index.js
 const express = require('express');
 const path = require('path');
-const pool = require('./db'); // importa a conexão
+const methodOverride = require('method-override');
+const usuariosController = require('./controllers/usuarios/usuariosController');
 
 const app = express();
+
+app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride('_method'));
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Teste de conexão na rota principal
-app.get('/', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT NOW()');
-    res.render('index', { dbTime: result.rows[0].now });
-  } catch (err) {
-    res.status(500).send('Erro ao conectar ao banco de dados: ' + err.message);
-  }
-});
+// Rotas de usuários
+app.get('/usuarios', usuariosController.index);
+app.get('/usuarios/create', usuariosController.create);
+app.post('/usuarios', usuariosController.store);
+app.get('/usuarios/:id/edit', usuariosController.edit);
+app.put('/usuarios/:id', usuariosController.update);
+app.delete('/usuarios/:id', usuariosController.delete);
+
+// ...outras rotas...
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
