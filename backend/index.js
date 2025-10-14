@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const authController = require("./controllers/auth/authController.js");
 const usuariosController = require("./controllers/usuarios/usuariosController.js");
 const projetosController = require("./controllers/projetos/projetosController.js");
 const clientesController = require("./controllers/clientes/clientesController.js");
@@ -24,6 +25,13 @@ app.use(cors());
 
 // Middleware para processar JSON
 app.use(express.json());
+
+// Rotas de autenticação
+app.post("/api/auth/login", authController.login);
+app.post("/api/auth/refresh", authController.refresh);
+
+// Middleware de autenticação para rotas protegidas
+const authenticateToken = authController.authenticateToken;
 
 // Rotas da API de usuários
 app.get("/api/usuarios", usuariosController.index);
@@ -146,8 +154,7 @@ app.delete("/api/tecnologias-projeto/:id", tecnologiasProjetoController.delete);
 // Rotas da API de testes
 app.get("/api/testes", testesController.index);
 app.post("/api/testes", testesController.store);
-app.get("/api/testes/projeto/:projetoId", testesController.byProjeto);
-app.get("/api/testes/tipo/:tipo", testesController.byTipo);
+app.get("/api/testes/projeto/:projeto_id", testesController.byProjeto);
 app.get("/api/testes/status/:status", testesController.byStatus);
 app.get("/api/testes/:id", testesController.show);
 app.put("/api/testes/:id", testesController.update);
