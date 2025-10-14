@@ -1,30 +1,27 @@
 import 'package:flutter/material.dart';
-import '../models/usuario.dart';
+import '../models/recurso.dart';
 import '../services/api_service.dart';
 import '../config/api_config.dart';
 
-class UsuariosProvider with ChangeNotifier {
+class RecursosProvider with ChangeNotifier {
   final ApiService _apiService = ApiService(baseUrl: ApiConfig.baseUrl);
-  List<Usuario> _usuarios = [];
+  List<Recurso> _recursos = [];
   bool _isLoading = false;
   String? _error;
-  Usuario? _usuarioLogado;
 
-  Usuario? get usuarioLogado => _usuarioLogado;
-
-  List<Usuario> get usuarios => [..._usuarios];
+  List<Recurso> get recursos => [..._recursos];
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> fetchUsuarios() async {
+  Future<void> carregarRecursos() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final response = await _apiService.get(ApiConfig.usuarios);
-      _usuarios = (response['data'] as List)
-          .map((item) => Usuario.fromJson(item as Map<String, dynamic>))
+      final response = await _apiService.get(ApiConfig.recursos);
+      _recursos = (response['data'] as List)
+          .map((item) => Recurso.fromJson(item as Map<String, dynamic>))
           .toList();
       _isLoading = false;
       notifyListeners();
@@ -35,17 +32,17 @@ class UsuariosProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addUsuario(Usuario usuario) async {
+  Future<void> criarRecurso(Map<String, dynamic> data) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       final response = await _apiService.post(
-        ApiConfig.usuarios,
-        usuario.toJson(),
+        ApiConfig.recursos,
+        data,
       );
-      final novoUsuario = Usuario.fromJson(response['data']);
-      _usuarios.add(novoUsuario);
+      final novoRecurso = Recurso.fromJson(response['data']);
+      _recursos.add(novoRecurso);
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -55,18 +52,22 @@ class UsuariosProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateUsuario(Usuario usuario) async {
+  Future<void> atualizarRecurso(int? id, Map<String, dynamic> data) async {
+    if (id == null) return;
+    
     _isLoading = true;
     notifyListeners();
 
     try {
       await _apiService.put(
-        '${ApiConfig.usuarios}/${usuario.id}',
-        usuario.toJson(),
+        '${ApiConfig.recursos}/$id',
+        data,
       );
-      final index = _usuarios.indexWhere((u) => u.id == usuario.id);
+      final response = await _apiService.get('${ApiConfig.recursos}/$id');
+      final recursoAtualizado = Recurso.fromJson(response['data']);
+      final index = _recursos.indexWhere((r) => r.id == id);
       if (index != -1) {
-        _usuarios[index] = usuario;
+        _recursos[index] = recursoAtualizado;
       }
       _isLoading = false;
       notifyListeners();
@@ -77,13 +78,14 @@ class UsuariosProvider with ChangeNotifier {
     }
   }
 
-  Future<void> deleteUsuario(String id) async {
+  Future<void> excluirRecurso(int id) async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
     try {
-      await _apiService.delete('${ApiConfig.usuarios}/$id');
-      _usuarios.removeWhere((u) => u.id.toString() == id);
+      await _apiService.delete('${ApiConfig.recursos}/$id');
+      _recursos.removeWhere((r) => r.id == id);
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -91,20 +93,5 @@ class UsuariosProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
-  }
-
-  Future<void> setUsuarioLogado(Usuario usuario) async {
-    _usuarioLogado = usuario;
-    notifyListeners();
-  }
-
-  void limparErro() {
-    _error = null;
-    notifyListeners();
-  }
-
-  void limparUsuarioSelecionado() {
-    _usuarioSelecionado = null;
-    notifyListeners();
   }
 }

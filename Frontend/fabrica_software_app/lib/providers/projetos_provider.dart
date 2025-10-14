@@ -1,18 +1,17 @@
 import 'package:flutter/foundation.dart';
 import '../models/projeto.dart';
-import '../services/projetos_service.dart';
+import '../services/api_service.dart';
+import '../config/api_config.dart';
 
 class ProjetosProvider with ChangeNotifier {
-  final _service = ProjetosService.instance;
+  final ApiService _apiService = ApiService(baseUrl: ApiConfig.baseUrl);
+  List<Projeto> _projetos = [];
   bool _isLoading = false;
   String? _error;
-  List<Projeto>? _projetos;
-  Projeto? _projetoSelecionado;
 
+  List<Projeto> get projetos => [..._projetos];
   bool get isLoading => _isLoading;
   String? get error => _error;
-  List<Projeto>? get projetos => _projetos;
-  Projeto? get projetoSelecionado => _projetoSelecionado;
 
   Future<void> carregarProjetos() async {
     _isLoading = true;
@@ -20,99 +19,75 @@ class ProjetosProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _projetos = await _service.listarProjetos();
-      _error = null;
+      final response = await _apiService.get(ApiConfig.projetos);
+      _projetos = (response['data'] as List)
+          .map((item) => Projeto.fromJson(item as Map<String, dynamic>))
+          .toList();
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
       _error = e.toString();
-    } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> carregarProjeto(int id) async {
+  Future<void> criarProjeto(Map<String, dynamic> data) async {
     _isLoading = true;
-    _error = null;
     notifyListeners();
 
     try {
-      _projetoSelecionado = await _service.buscarProjeto(id);
-      _error = null;
+      final response = await _apiService.post(
+        ApiConfig.projetos,
+        data,
+      );
+      final novoProjeto = Projeto.fromJson(response['data']);
+      _projetos.add(novoProjeto);
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
       _error = e.toString();
-    } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> criarProjeto(Map<String, dynamic> data) async {
+  Future<void> atualizarProjeto(int id, Map<String, dynamic> data) async {
     _isLoading = true;
-    _error = null;
     notifyListeners();
 
     try {
-      final projeto = await _service.criarProjeto(data);
-      _projetos?.add(projeto);
-      _error = null;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<bool> atualizarProjeto(int id, Map<String, dynamic> data) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final projeto = await _service.atualizarProjeto(id, data);
-      final index = _projetos?.indexWhere((p) => p.id == id);
-      if (index != null && index != -1) {
-        _projetos?[index] = projeto;
+      await _apiService.put(
+        '${ApiConfig.projetos}/$id',
+        data,
+      );
+      final response = await _apiService.get('${ApiConfig.projetos}/$id');
+      final projetoAtualizado = Projeto.fromJson(response['data']);
+      final index = _projetos.indexWhere((p) => p.id == id);
+      if (index != -1) {
+        _projetos[index] = projetoAtualizado;
       }
-      if (_projetoSelecionado?.id == id) {
-        _projetoSelecionado = projeto;
-      }
-      _error = null;
+      _isLoading = false;
       notifyListeners();
-      return true;
     } catch (e) {
       _error = e.toString();
-      notifyListeners();
-      return false;
-    } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> excluirProjeto(int id) async {
+  Future<void> excluirProjeto(int id) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      await _service.excluirProjeto(id);
-      _projetos?.removeWhere((p) => p.id == id);
-      if (_projetoSelecionado?.id == id) {
-        _projetoSelecionado = null;
-      }
-      _error = null;
+      await _apiService.delete('${ApiConfig.projetos}/$id');
+      _projetos.removeWhere((p) => p.id == id);
+      _isLoading = false;
       notifyListeners();
-      return true;
     } catch (e) {
       _error = e.toString();
-      notifyListeners();
-      return false;
-    } finally {
       _isLoading = false;
       notifyListeners();
     }

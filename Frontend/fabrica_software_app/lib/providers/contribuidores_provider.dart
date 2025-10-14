@@ -1,30 +1,27 @@
 import 'package:flutter/material.dart';
-import '../models/usuario.dart';
+import '../models/contribuidor.dart';
 import '../services/api_service.dart';
 import '../config/api_config.dart';
 
-class UsuariosProvider with ChangeNotifier {
+class ContribuidoresProvider with ChangeNotifier {
   final ApiService _apiService = ApiService(baseUrl: ApiConfig.baseUrl);
-  List<Usuario> _usuarios = [];
+  List<Contribuidor> _contribuidores = [];
   bool _isLoading = false;
   String? _error;
-  Usuario? _usuarioLogado;
 
-  Usuario? get usuarioLogado => _usuarioLogado;
-
-  List<Usuario> get usuarios => [..._usuarios];
+  List<Contribuidor> get contribuidores => [..._contribuidores];
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> fetchUsuarios() async {
+  Future<void> carregarContribuidores() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final response = await _apiService.get(ApiConfig.usuarios);
-      _usuarios = (response['data'] as List)
-          .map((item) => Usuario.fromJson(item as Map<String, dynamic>))
+      final response = await _apiService.get(ApiConfig.contribuidores);
+      _contribuidores = (response['data'] as List)
+          .map((item) => Contribuidor.fromJson(item as Map<String, dynamic>))
           .toList();
       _isLoading = false;
       notifyListeners();
@@ -35,17 +32,17 @@ class UsuariosProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addUsuario(Usuario usuario) async {
+  Future<void> criarContribuidor(Map<String, dynamic> data) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       final response = await _apiService.post(
-        ApiConfig.usuarios,
-        usuario.toJson(),
+        ApiConfig.contribuidores,
+        data,
       );
-      final novoUsuario = Usuario.fromJson(response['data']);
-      _usuarios.add(novoUsuario);
+      final novoContribuidor = Contribuidor.fromJson(response['data']);
+      _contribuidores.add(novoContribuidor);
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -55,18 +52,22 @@ class UsuariosProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateUsuario(Usuario usuario) async {
+  Future<void> atualizarContribuidor(int? id, Map<String, dynamic> data) async {
+    if (id == null) return;
+    
     _isLoading = true;
     notifyListeners();
 
     try {
       await _apiService.put(
-        '${ApiConfig.usuarios}/${usuario.id}',
-        usuario.toJson(),
+        '${ApiConfig.contribuidores}/$id',
+        data,
       );
-      final index = _usuarios.indexWhere((u) => u.id == usuario.id);
+      final response = await _apiService.get('${ApiConfig.contribuidores}/$id');
+      final contribuidorAtualizado = Contribuidor.fromJson(response['data']);
+      final index = _contribuidores.indexWhere((c) => c.id == id);
       if (index != -1) {
-        _usuarios[index] = usuario;
+        _contribuidores[index] = contribuidorAtualizado;
       }
       _isLoading = false;
       notifyListeners();
@@ -77,13 +78,14 @@ class UsuariosProvider with ChangeNotifier {
     }
   }
 
-  Future<void> deleteUsuario(String id) async {
+  Future<void> excluirContribuidor(int id) async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
     try {
-      await _apiService.delete('${ApiConfig.usuarios}/$id');
-      _usuarios.removeWhere((u) => u.id.toString() == id);
+      await _apiService.delete('${ApiConfig.contribuidores}/$id');
+      _contribuidores.removeWhere((c) => c.id == id);
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -91,20 +93,5 @@ class UsuariosProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
-  }
-
-  Future<void> setUsuarioLogado(Usuario usuario) async {
-    _usuarioLogado = usuario;
-    notifyListeners();
-  }
-
-  void limparErro() {
-    _error = null;
-    notifyListeners();
-  }
-
-  void limparUsuarioSelecionado() {
-    _usuarioSelecionado = null;
-    notifyListeners();
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import 'lista_usuarios_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,11 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
           );
 
       if (success && mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const ListaUsuariosScreen(),
-          ),
-        );
+        Navigator.of(context).pushReplacementNamed('/usuarios');
       }
     }
   }
