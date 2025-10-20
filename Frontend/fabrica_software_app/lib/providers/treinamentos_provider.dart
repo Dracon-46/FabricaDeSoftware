@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/treinamento.dart';
-import '../services/api_service.dart';
+
 
 class TreinamentosProvider with ChangeNotifier {
   final List<Treinamento> _treinamentos = [];

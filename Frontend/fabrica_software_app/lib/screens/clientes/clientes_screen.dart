@@ -23,7 +23,9 @@ class ClientesScreen extends StatelessWidget {
             await provider.criarCliente(cliente.toJson());
           },
           onUpdate: (cliente) async {
-            await provider.atualizarCliente(cliente.id, cliente.toJson());
+            if (cliente.id != null) {
+              await provider.atualizarCliente(cliente.id!, cliente.toJson());
+            }
           },
           onDelete: (id) async {
             await provider.excluirCliente(int.parse(id));

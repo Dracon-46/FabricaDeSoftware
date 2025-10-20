@@ -9,14 +9,16 @@ class UsuariosProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   Usuario? _usuarioLogado;
+  Usuario? _usuarioSelecionado;
 
   Usuario? get usuarioLogado => _usuarioLogado;
+  Usuario? get usuarioSelecionado => _usuarioSelecionado;
 
   List<Usuario> get usuarios => [..._usuarios];
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> fetchUsuarios() async {
+  Future<void> carregarUsuarios() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -35,14 +37,14 @@ class UsuariosProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addUsuario(Usuario usuario) async {
+  Future<void> criarUsuario(Map<String, dynamic> data) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       final response = await _apiService.post(
         ApiConfig.usuarios,
-        usuario.toJson(),
+        data,
       );
       final novoUsuario = Usuario.fromJson(response['data']);
       _usuarios.add(novoUsuario);
@@ -55,18 +57,20 @@ class UsuariosProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateUsuario(Usuario usuario) async {
+  Future<void> atualizarUsuario(int id, Map<String, dynamic> data) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       await _apiService.put(
-        '${ApiConfig.usuarios}/${usuario.id}',
-        usuario.toJson(),
+        '${ApiConfig.usuarios}/$id',
+        data,
       );
-      final index = _usuarios.indexWhere((u) => u.id == usuario.id);
+      final response = await _apiService.get('${ApiConfig.usuarios}/$id');
+      final usuarioAtualizado = Usuario.fromJson(response['data']);
+      final index = _usuarios.indexWhere((u) => u.id == id);
       if (index != -1) {
-        _usuarios[index] = usuario;
+        _usuarios[index] = usuarioAtualizado;
       }
       _isLoading = false;
       notifyListeners();
@@ -77,13 +81,13 @@ class UsuariosProvider with ChangeNotifier {
     }
   }
 
-  Future<void> deleteUsuario(String id) async {
+  Future<void> excluirUsuario(int id) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       await _apiService.delete('${ApiConfig.usuarios}/$id');
-      _usuarios.removeWhere((u) => u.id.toString() == id);
+      _usuarios.removeWhere((u) => u.id == id);
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -92,6 +96,12 @@ class UsuariosProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Métodos de compatibilidade para manter a API antiga
+  Future<void> fetchUsuarios() => carregarUsuarios();
+  Future<void> addUsuario(Usuario usuario) => criarUsuario(usuario.toJson());
+  Future<void> updateUsuario(Usuario usuario) => atualizarUsuario(usuario.id!, usuario.toJson());
+  Future<void> deleteUsuario(String id) => excluirUsuario(int.parse(id));
 
   Future<void> setUsuarioLogado(Usuario usuario) async {
     _usuarioLogado = usuario;

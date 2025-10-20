@@ -8,8 +8,10 @@ class ProjetosProvider with ChangeNotifier {
   List<Projeto> _projetos = [];
   bool _isLoading = false;
   String? _error;
+  Projeto? _projetoSelecionado;
 
   List<Projeto> get projetos => [..._projetos];
+  Projeto? get projetoSelecionado => _projetoSelecionado;
   bool get isLoading => _isLoading;
   String? get error => _error;
 

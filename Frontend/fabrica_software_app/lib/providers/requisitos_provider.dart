@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/requisito.dart';
-import '../services/api_service.dart';
+
 
 class RequisitosProvider with ChangeNotifier {
   final List<Requisito> _requisitos = [];

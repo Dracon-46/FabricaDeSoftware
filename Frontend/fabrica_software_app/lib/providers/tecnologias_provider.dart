@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/tecnologia.dart';
-import '../services/api_service.dart';
+
 
 class TecnologiasProvider with ChangeNotifier {
   final List<Tecnologia> _tecnologias = [];

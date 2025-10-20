@@ -15,7 +15,7 @@ class ContribuidoresScreen extends StatelessWidget {
       builder: (context, provider, _) {
         return CrudScreen<Contribuidor>(
           title: 'Contribuidores',
-          items: provider.contribuidores ?? [],
+          items: provider.contribuidores,
           isLoading: provider.isLoading,
           error: provider.error,
           onRefresh: () => provider.carregarContribuidores(),

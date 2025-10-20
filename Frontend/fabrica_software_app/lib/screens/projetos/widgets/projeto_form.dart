@@ -241,7 +241,7 @@ class _ProjetoFormState extends State<ProjetoForm> {
                 labelText: 'Responsável',
                 border: OutlineInputBorder(),
               ),
-              items: (usuariosProvider.usuarios ?? []).map((usuario) {
+              items: usuariosProvider.usuarios.map((usuario) {
                 return DropdownMenuItem(
                   value: usuario.id,
                   child: Text(usuario.nome),

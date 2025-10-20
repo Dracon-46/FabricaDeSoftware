@@ -4,12 +4,10 @@ import 'recurso_list_item.dart';
 
 class RecursoList extends StatelessWidget {
   final List<Recurso> recursos;
-  final Function(int) onEdit;
 
   const RecursoList({
     Key? key,
     required this.recursos,
-    required this.onEdit,
   }) : super(key: key);
 
   @override
@@ -19,7 +17,6 @@ class RecursoList extends StatelessWidget {
       itemCount: recursos.length,
       itemBuilder: (ctx, i) => RecursoListItem(
         recurso: recursos[i],
-        onEdit: onEdit,
         key: ValueKey(recursos[i].id),
       ),
     );

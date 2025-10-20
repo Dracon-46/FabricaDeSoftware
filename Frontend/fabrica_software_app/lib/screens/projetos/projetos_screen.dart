@@ -15,7 +15,7 @@ class ProjetosScreen extends StatelessWidget {
       builder: (context, provider, _) {
         return CrudScreen<Projeto>(
           title: 'Projetos',
-          items: provider.projetos ?? [],
+          items: provider.projetos,
           isLoading: provider.isLoading,
           error: provider.error,
           onRefresh: () => provider.carregarProjetos(),
@@ -23,7 +23,9 @@ class ProjetosScreen extends StatelessWidget {
             await provider.criarProjeto(projeto.toJson());
           },
           onUpdate: (projeto) async {
-            await provider.atualizarProjeto(projeto.id, projeto.toJson());
+            if (projeto.id != null) {
+              await provider.atualizarProjeto(projeto.id!, projeto.toJson());
+            }
           },
           onDelete: (id) async {
             await provider.excluirProjeto(int.parse(id));

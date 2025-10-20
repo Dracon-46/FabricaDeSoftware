@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/usuario.dart';
+import '../../models/enums.dart';
 import '../../providers/usuarios_provider.dart';
 import '../components/crud_screen.dart';
 
@@ -88,9 +89,10 @@ class ListaUsuariosScreen extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () {
                           final usuario = Usuario(
-                            id: item?.id ?? '',
+                            id: item?.id,
                             nome: nomeController.text,
                             email: emailController.text,
+                            nivel: NivelUsuario.admin, // Valor padrão, ajuste conforme necessário
                             senha: senhaController.text,
                           );
                           if (item == null) {

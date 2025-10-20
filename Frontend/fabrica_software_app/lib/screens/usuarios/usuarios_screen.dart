@@ -15,7 +15,7 @@ class UsuariosScreen extends StatelessWidget {
       builder: (context, provider, _) {
         return CrudScreen<Usuario>(
           title: 'Usuários',
-          items: provider.usuarios ?? [],
+          items: provider.usuarios,
           isLoading: provider.isLoading,
           error: provider.error,
           onRefresh: () => provider.carregarUsuarios(),
@@ -23,7 +23,9 @@ class UsuariosScreen extends StatelessWidget {
             await provider.criarUsuario(usuario.toJson());
           },
           onUpdate: (usuario) async {
-            await provider.atualizarUsuario(usuario.id, usuario.toJson());
+            if (usuario.id != null) {
+              await provider.atualizarUsuario(usuario.id!, usuario.toJson());
+            }
           },
           onDelete: (id) async {
             await provider.excluirUsuario(int.parse(id));
