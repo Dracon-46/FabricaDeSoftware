@@ -1,126 +1,150 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import 'lista_usuarios_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class Loginscreen extends StatefulWidget {
+  const Loginscreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<Loginscreen> createState() => _LoginscreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _senhaController = TextEditingController();
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _senhaController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _login() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      final success = await context.read<AuthProvider>().login(
-            _emailController.text,
-            _senhaController.text,
-          );
-
-      if (success && mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const ListaUsuariosScreen(),
-          ),
-        );
-      }
-    }
-  }
-
+class _LoginscreenState extends State<Loginscreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Fábrica de Software',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira seu email';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _senhaController,
-                  decoration: const InputDecoration(
-                    labelText: 'Senha',
-                    border: OutlineInputBorder(),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira sua senha';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                Consumer<AuthProvider>(
-                  builder: (context, auth, child) {
-                    if (auth.isLoading) {
-                      return const CircularProgressIndicator();
-                    }
-                    return Column(
-                      children: [
-                        if (auth.error != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Text(
-                              auth.error!,
-                              style: const TextStyle(
-                                color: Colors.red,
-                              ),
-                            ),
+      backgroundColor: const Color.fromARGB(255, 95, 115, 231),
+
+      body:
+          Center( 
+            child:
+                Container( 
+                  constraints: const BoxConstraints(maxWidth: 450),
+                  margin: const EdgeInsets.all(16.0),
+                  
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1), 
+                          blurRadius: 8.0,
+                          spreadRadius: 1.0, 
+                          offset: Offset(0, 2),
                           ),
-                        ElevatedButton(
-                          onPressed: _login,
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(50),
-                          ),
-                          child: const Text('Entrar'),
-                        ),
-                      ],
-                    );
-                  },
+                      ]
+                  ),
+                  
+                  child:
+                      Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: 
+                            Column( 
+                              mainAxisSize: MainAxisSize.min, 
+                              crossAxisAlignment: CrossAxisAlignment.stretch, 
+                              
+                              children: <Widget>[
+                                Image.asset('assets/image/tegra_logo.png',width:35,height:35,),
+                                
+                                const SizedBox(height: 16), 
+                                
+                                Text(
+                                  'Entre na sua conta',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), 
+                                ),
+                                
+                                const SizedBox(height: 32),
+                                
+                                Text(
+                                  'Email*',
+                                  style: TextStyle(fontWeight: FontWeight.bold), 
+                                ),
+                                const SizedBox(height: 8), 
+
+                                TextField(
+                                  decoration: InputDecoration(
+                                    hintText: 'usuario@tegra.com.br',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                ),
+                                
+                                const SizedBox(height: 24),
+                                
+                                Text(
+                                  'Senha*',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+
+                                TextField(
+                                  obscureText: true, 
+                                  decoration: InputDecoration(
+                                    hintText: '********',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                ),
+                                
+                                const SizedBox(height: 16),
+                                
+                                Align( 
+                                  alignment: Alignment.centerRight,
+                                  child: MouseRegion( 
+                                    cursor: SystemMouseCursors.click,
+                                    child: GestureDetector(
+                                      onTap: () { print('Esqueci a senha'); },
+                                      child: Text(
+                                        'Esqueci a senha',
+                                        style: TextStyle(color: Color.fromARGB(255, 83, 10, 255)), 
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                
+                                const SizedBox(height: 24),
+                                
+                                ElevatedButton(
+                                  onPressed: (){ print('Clicou em Entrar'); }, 
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color.fromARGB(255, 38, 57, 177),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder( 
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Entrar',
+                                    style: TextStyle(fontSize: 18),
+                                  )
+                                ),
+                                const SizedBox(height: 32),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center, 
+                                  children: <Widget>[
+                                    Text('Não tem uma conta? '),
+                                    MouseRegion(
+                                      cursor: SystemMouseCursors.click,
+                                      child:GestureDetector(
+                                        onTap: () { print('Clicou em Cadastrar-se'); },
+                                        child:Text(
+                                          'Cadastrar-se',
+                                          style: TextStyle(
+                                            color: const Color.fromARGB(255, 83, 10, 255), 
+                                            fontWeight: FontWeight.bold,
+                                          )
+                                        )
+                                      ), 
+                                    ), 
+                                  ]
+                                )
+                              ],
+                            ), 
+                      ),
                 ),
-              ],
-            ),
           ),
-        ),
-      ),
     );
   }
 }
