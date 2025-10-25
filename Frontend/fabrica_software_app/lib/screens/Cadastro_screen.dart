@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../services/usuarios_service.dart';
 import '../providers/auth_provider.dart';
-import 'Cadastro_Screen.dart';
 import 'api_test_screen.dart';
 
-class Loginscreen extends StatefulWidget {
-  const Loginscreen({super.key});
+class CadastroScreen extends StatefulWidget {
+  const CadastroScreen({super.key});
 
   @override
-  State<Loginscreen> createState() => _LoginscreenState();
+  State<CadastroScreen> createState() => _CadastroScreenState();
 }
 
-class _LoginscreenState extends State<Loginscreen> {
-  final _emailController = TextEditingController(text: '');
-  final _senhaController = TextEditingController(text: '');
+class _CadastroScreenState extends State<CadastroScreen> {
+  final _nomeController = TextEditingController();
+  final _telefoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _senhaController = TextEditingController();
+  final _confirmSenhaController = TextEditingController();
   bool _isLoading = false;
   @override
   Widget build(BuildContext context) {
@@ -54,13 +57,49 @@ class _LoginscreenState extends State<Loginscreen> {
                                 const SizedBox(height: 16), 
                                 
                                 Text(
-                                  'Entre na sua conta',
+                                  'Crie sua conta',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), 
                                 ),
+
+                                 const SizedBox(height: 32),
                                 
-                                const SizedBox(height: 32),
+                                Text(
+                                  'Nome completo*',
+                                  style: TextStyle(fontWeight: FontWeight.bold), 
+                                ),
+                                const SizedBox(height: 8), 
+
+                                TextField(
+                                  controller: _nomeController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Digite seu nome completo',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                ),
                                 
+                                const SizedBox(height: 8),
+                      
+                                
+                                Text(
+                                  'Telefone*',
+                                  style: TextStyle(fontWeight: FontWeight.bold), 
+                                ),
+                                const SizedBox(height: 8), 
+
+                                TextField(
+                                  controller: _telefoneController,
+                                  decoration: InputDecoration(
+                                    hintText: '(15) 99999-9999',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                ),
+                                
+                                const SizedBox(height: 8),
                                 Text(
                                   'Email*',
                                   style: TextStyle(fontWeight: FontWeight.bold), 
@@ -70,15 +109,14 @@ class _LoginscreenState extends State<Loginscreen> {
                                 TextField(
                                   controller: _emailController,
                                   decoration: InputDecoration(
-                                    hintText: 'usuario@tegra.com.br',
+                                    hintText: 'seu@email.com',
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                   ),
                                 ),
                                 
-                                const SizedBox(height: 24),
-                                
+                                const SizedBox(height: 8),
                                 Text(
                                   'Senha*',
                                   style: TextStyle(fontWeight: FontWeight.bold),
@@ -95,32 +133,45 @@ class _LoginscreenState extends State<Loginscreen> {
                                     ),
                                   ),
                                 ),
-                                
-                                const SizedBox(height: 16),
-                                
-                                Align( 
-                                  alignment: Alignment.centerRight,
-                                  child: MouseRegion( 
-                                    cursor: SystemMouseCursors.click,
-                                    child: GestureDetector(
-                                      onTap: () { print('Esqueci a senha'); },
-                                      child: Text(
-                                        'Esqueci a senha',
-                                        style: TextStyle(color: Color.fromARGB(255, 83, 10, 255)), 
-                                      ),
+                                const SizedBox(height: 8,),
+                                Text(
+                                  'Confirme a senha*',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+
+                                TextField(
+                                  controller: _confirmSenhaController,
+                                  obscureText: true, 
+                                  decoration: InputDecoration(
+                                    hintText: '********',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
                                     ),
                                   ),
                                 ),
+                                const SizedBox(height: 24,),
                                 
-                                const SizedBox(height: 24),
-                                
+
                                 ElevatedButton(
                                   onPressed: _isLoading ? null : () async {
+                                    // Validações simples
+                                    final nome = _nomeController.text.trim();
+                                    final telefone = _telefoneController.text.trim();
                                     final email = _emailController.text.trim();
                                     final senha = _senhaController.text;
-                                    if (email.isEmpty || senha.isEmpty) {
+                                    final confirm = _confirmSenhaController.text;
+
+                                    if (nome.isEmpty || email.isEmpty || senha.isEmpty) {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Preencha email e senha')),
+                                        const SnackBar(content: Text('Preencha nome, email e senha')),
+                                      );
+                                      return;
+                                    }
+
+                                    if (senha != confirm) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('As senhas não coincidem')),
                                       );
                                       return;
                                     }
@@ -128,33 +179,43 @@ class _LoginscreenState extends State<Loginscreen> {
                                     setState(() => _isLoading = true);
 
                                     try {
-                                        final auth = context.read<AuthProvider>();
-                                        final success = await auth.login(email, senha);
+                                      final data = {
+                                        'nome': nome,
+                                        'email': email,
+                                        'senha': senha,
+                                        'nivel': 'colaborador', // padrão
+                                        'telefone': telefone,
+                                      };
 
-                                        if (!mounted) return;
+                                      final usuario = await UsuariosService.instance.criarUsuario(data);
 
-                                        if (success) {
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(builder: (_) => const ApiTestScreen()),
-                                          );
-                                        } else {
-                                          if (mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text(auth.error ?? 'Falha no login')),
-                                            );
-                                          }
-                                        }
+                                      // Tentar login automático após cadastro
+                                      final auth = context.read<AuthProvider>();
+                                      final success = await auth.login(email, senha);
+
+                                      if (!mounted) return;
+
+                                      if (success) {
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => const ApiTestScreen()),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Usuário criado: ${usuario.nome}. Faça login.')),
+                                        );
+                                        Navigator.pop(context);
+                                      }
                                     } catch (e) {
                                       if (mounted) {
                                         ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Erro no login: ${e.toString()}')),
+                                          SnackBar(content: Text('Erro ao criar usuário: ${e.toString()}')),
                                         );
                                       }
                                     } finally {
                                       if (mounted) setState(() => _isLoading = false);
                                     }
-                                  },
+                                  }, 
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color.fromARGB(255, 38, 57, 177),
                                     foregroundColor: Colors.white,
@@ -165,19 +226,21 @@ class _LoginscreenState extends State<Loginscreen> {
                                   ),
                                   child: _isLoading
                                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                      : const Text('Entrar', style: TextStyle(fontSize: 18)),
+                                      : const Text('Cadastrar-se', style: TextStyle(fontSize: 18)),
                                 ),
                                 const SizedBox(height: 32),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center, 
                                   children: <Widget>[
-                                    Text('Não tem uma conta? '),
+                                    Text('já tem uma conta? '),
                                     MouseRegion(
                                       cursor: SystemMouseCursors.click,
                                       child:GestureDetector(
-                                        onTap: () { Navigator.push(context, MaterialPageRoute(builder: (context){return const CadastroScreen();}));},
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                        },
                                         child:Text(
-                                          'Cadastrar-se',
+                                          'Fazer login',
                                           style: TextStyle(
                                             color: const Color.fromARGB(255, 83, 10, 255), 
                                             fontWeight: FontWeight.bold,
@@ -197,8 +260,11 @@ class _LoginscreenState extends State<Loginscreen> {
 
   @override
   void dispose() {
+    _nomeController.dispose();
+    _telefoneController.dispose();
     _emailController.dispose();
     _senhaController.dispose();
+    _confirmSenhaController.dispose();
     super.dispose();
   }
 }

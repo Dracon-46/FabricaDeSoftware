@@ -18,11 +18,26 @@ class Usuario {
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
+    // O Postgres/driver às vezes retorna ids como String; normalizar para int
+    int? parsedId;
+    try {
+      final rawId = json['id'];
+      if (rawId == null) {
+        parsedId = null;
+      } else if (rawId is int) {
+        parsedId = rawId;
+      } else {
+        parsedId = int.tryParse(rawId.toString());
+      }
+    } catch (_) {
+      parsedId = null;
+    }
+
     return Usuario(
-      id: json['id'],
-      nome: json['nome'],
-      email: json['email'],
-      nivel: NivelUsuario.fromString(json['nivel']),
+      id: parsedId,
+      nome: json['nome'] ?? '',
+      email: json['email'] ?? '',
+      nivel: NivelUsuario.fromString(json['nivel'] ?? 'colaborador'),
       telefone: json['telefone'],
     );
   }
