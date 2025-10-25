@@ -1,5 +1,4 @@
 const pool = require("../../db");
-const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const SECRET_KEY = process.env.JWT_SECRET || "sua_chave_secreta_aqui";

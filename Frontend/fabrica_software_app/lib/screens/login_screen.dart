@@ -175,7 +175,7 @@ class _LoginscreenState extends State<Loginscreen> {
                                     MouseRegion(
                                       cursor: SystemMouseCursors.click,
                                       child:GestureDetector(
-                                        onTap: () { Navigator.push(context, MaterialPageRoute(builder: (context){return const CadastroScreen();}));},
+                                        onTap: () { Navigator.pushNamed(context,'/Cadastro');},
                                         child:Text(
                                           'Cadastrar-se',
                                           style: TextStyle(

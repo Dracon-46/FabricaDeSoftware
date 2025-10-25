@@ -196,10 +196,8 @@ class _CadastroScreenState extends State<CadastroScreen> {
                                       if (!mounted) return;
 
                                       if (success) {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(builder: (_) => const ApiTestScreen()),
-                                        );
+                                        Navigator.pushReplacementNamed(context,'/ApiTest');
+                                          
                                       } else {
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(content: Text('Usuário criado: ${usuario.nome}. Faça login.')),

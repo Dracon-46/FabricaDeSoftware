@@ -1,3 +1,4 @@
+import 'package:fabrica_software_app/screens/Cadastro_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/usuarios_provider.dart';
@@ -24,12 +25,17 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ClientesProvider()),
       ],
       child: MaterialApp(
+        initialRoute: '/',
+        routes: {
+          '/':(context){return const Loginscreen();},
+          '/Cadastro':(context){return const CadastroScreen();},
+          '/ApiTest':(context){return const ApiTestScreen();},
+        },
         title: 'Fábrica de Software',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
         ),
-        home: const Loginscreen(), // Temporariamente usando a tela de teste
       ),
     );
   }
