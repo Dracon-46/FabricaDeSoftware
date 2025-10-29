@@ -1,50 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import 'Cadastro_Screen.dart';
-import 'api_test_screen.dart';
+import '../../../providers/auth_provider.dart';
+import '../../Api_teste/api_test_screen.dart';
 
-class Loginscreen extends StatefulWidget {
-  const Loginscreen({super.key});
+class FormularioLogin extends StatefulWidget {
+  const FormularioLogin({super.key});
 
   @override
-  State<Loginscreen> createState() => _LoginscreenState();
+  State<FormularioLogin> createState() => _FormularioLoginState();
 }
 
-class _LoginscreenState extends State<Loginscreen> {
+class _FormularioLoginState extends State<FormularioLogin> {
   final _emailController = TextEditingController(text: '');
   final _senhaController = TextEditingController(text: '');
   bool _isLoading = false;
+
+   @override
+  void dispose() {
+    _emailController.dispose();
+    _senhaController.dispose();
+    super.dispose();
+  }
+  
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 95, 115, 231),
-
-      body:
-          Center( 
-            child:
-                Container( 
-                  constraints: const BoxConstraints(maxWidth: 450),
-                  margin: const EdgeInsets.all(16.0),
-                  
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1), 
-                          blurRadius: 8.0,
-                          spreadRadius: 1.0, 
-                          offset: Offset(0, 2),
-                          ),
-                      ]
-                  ),
-                  
-                  child:
-                      Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: 
-                            Column( 
+    return Column( 
                               mainAxisSize: MainAxisSize.min, 
                               crossAxisAlignment: CrossAxisAlignment.stretch, 
                               
@@ -188,17 +168,6 @@ class _LoginscreenState extends State<Loginscreen> {
                                   ]
                                 )
                               ],
-                            ), 
-                      ),
-                ),
-          ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _senhaController.dispose();
-    super.dispose();
+                            );
   }
 }

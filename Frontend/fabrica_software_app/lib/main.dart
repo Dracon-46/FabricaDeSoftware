@@ -1,12 +1,14 @@
-import 'package:fabrica_software_app/screens/Cadastro_screen.dart';
+import 'package:fabrica_software_app/screens/Api_teste/Teste.dart';
+import 'package:fabrica_software_app/screens/Cadastro/Cadastro_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/usuarios_provider.dart';
 import 'providers/projetos_provider.dart';
 import 'providers/clientes_provider.dart';
 import 'providers/auth_provider.dart';
-import 'screens/api_test_screen.dart';
-import 'screens/Login_Screen.dart';
+import 'screens/Api_teste/api_test_screen.dart';
+import 'screens/Login/login_screen.dart';
+import 'screens/Gerenciar_Projetos/Gerenciar_projetos.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,6 +32,8 @@ class MyApp extends StatelessWidget {
           '/':(context){return const Loginscreen();},
           '/Cadastro':(context){return const CadastroScreen();},
           '/ApiTest':(context){return const ApiTestScreen();},
+          '/Gerenciar_Projetos':(context){return const ProjectDashboardApp();},
+          '/Teste':(context){return const Teste();}
         },
         title: 'Fábrica de Software',
         theme: ThemeData(
