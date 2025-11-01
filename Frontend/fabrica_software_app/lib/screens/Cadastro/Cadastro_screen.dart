@@ -7,6 +7,7 @@ import '../Api_teste/api_test_screen.dart';
 class CadastroScreen extends StatefulWidget {
   const CadastroScreen({super.key});
 
+
   @override
   State<CadastroScreen> createState() => _CadastroScreenState();
 }
@@ -196,7 +197,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
                                       if (!mounted) return;
 
                                       if (success) {
-                                        Navigator.pushReplacementNamed(context,'/ApiTest');
+                                        Navigator.pushReplacementNamed(context,'/Gerenciar_Projetos');
                                           
                                       } else {
                                         ScaffoldMessenger.of(context).showSnackBar(

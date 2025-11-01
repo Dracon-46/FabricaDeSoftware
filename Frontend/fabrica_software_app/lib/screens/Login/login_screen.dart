@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../Cadastro/Cadastro_screen.dart';
 import '../Api_teste/api_test_screen.dart';
+import '../Gerenciar_Projetos/Gerenciar_projetos.dart';
 
 class Loginscreen extends StatefulWidget {
   const Loginscreen({super.key});
@@ -103,7 +104,7 @@ class _LoginscreenState extends State<Loginscreen> {
                                   child: MouseRegion( 
                                     cursor: SystemMouseCursors.click,
                                     child: GestureDetector(
-                                      onTap: () { Navigator.pushNamed(context, '/Teste'); },
+                                      onTap: () { Navigator.pushNamed(context, '/Account'); },
                                       child: Text(
                                         'Esqueci a senha',
                                         style: TextStyle(color: Color.fromARGB(255, 83, 10, 255)), 
@@ -136,7 +137,7 @@ class _LoginscreenState extends State<Loginscreen> {
                                         if (success) {
                                           Navigator.pushReplacement(
                                             context,
-                                            MaterialPageRoute(builder: (_) => const ApiTestScreen()),
+                                            MaterialPageRoute(builder: (_) => const GerenciarProjetos()),
                                           );
                                         } else {
                                           if (mounted) {

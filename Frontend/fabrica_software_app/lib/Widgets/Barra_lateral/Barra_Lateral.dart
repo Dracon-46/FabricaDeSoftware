@@ -56,7 +56,7 @@ class BarraLateral extends StatelessWidget {
                   title: Text('Projetos',style: Barra_Lateral_Styles.TextStyleButtons,),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushReplacementNamed(context, '/Cadastro');
+                    Navigator.pushReplacementNamed(context, '/Gerenciar_Projetos');
                   },
                 ),
 
@@ -104,13 +104,22 @@ class BarraLateral extends StatelessWidget {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    FaIcon(iconUser,color: Barra_Lateral_Styles.Usercolor,),
-                    const SizedBox(width: 13),
-                    Text('$userName',style:TextStyle(color: Barra_Lateral_Styles.Usercolor),),
-                  ]),
+                GestureDetector(
+                  child:MouseRegion(
+                    cursor:SystemMouseCursors.click,
+                      child:Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          FaIcon(iconUser,color: Barra_Lateral_Styles.Usercolor,),
+                          const SizedBox(width: 13),
+                          Text('$userName',style:TextStyle(color: Barra_Lateral_Styles.Usercolor),),
+                        ]
+                      ),
+                  ),
+                  onTap: () {
+                    Navigator.pushReplacementNamed(context, '/Account');
+                  },
+                ),
                 IconButton(
                   tooltip: 'Sair',
                   onPressed: () {
