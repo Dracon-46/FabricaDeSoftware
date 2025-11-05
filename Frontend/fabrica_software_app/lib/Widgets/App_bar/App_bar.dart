@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   final String title;
+  late List <Widget>? listaActions=[];
   
-  const CustomAppBar({super.key, required this.title});
+  CustomAppBar({super.key, required this.title, this.listaActions});
+
 
   @override
   Widget build(BuildContext context) {
@@ -14,9 +16,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       elevation: 0,
       iconTheme: IconThemeData(
-          size: 40,             // Aumentar o tamanho o faz parecer mais "bold"
-          weight: 700.0,        // Esta é a propriedade "bold" para ícones
+          size: 40,            
+          weight: 700.0,       
         ),
+      actions:listaActions,
     );
   }
 
