@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/usuarios_service.dart';
 import '../../providers/auth_provider.dart';
-import '../Api_teste/api_test_screen.dart';
+
 
 class CadastroScreen extends StatefulWidget {
   const CadastroScreen({super.key});
@@ -184,7 +184,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
                                         'nome': nome,
                                         'email': email,
                                         'senha': senha,
-                                        'nivel': 'colaborador', // padrão
+                                        'nivel': 'usuario', // padrão
                                         'telefone': telefone,
                                       };
 

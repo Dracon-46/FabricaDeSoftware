@@ -1,16 +1,19 @@
+import 'package:fabrica_software_app/Widgets/Nivel_icon/Nivel_icon.dart';
+import 'package:fabrica_software_app/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 import 'styles/Barra_Lateral_Styles.dart';
 
 class BarraLateral extends StatelessWidget {
 
-  BarraLateral({super.key,required this.iconUser,required this.userName});
-  late IconData iconUser;
-  late String userName;
+  const BarraLateral({super.key});
+
 
 
   @override
   Widget build(BuildContext context) {
+    final _authProvider = context.watch<AuthProvider>();
     return Drawer(
       backgroundColor:Colors.white,
       shape: const RoundedRectangleBorder(
@@ -65,7 +68,7 @@ class BarraLateral extends StatelessWidget {
                   title: Text('Equipe',style: Barra_Lateral_Styles.TextStyleButtons,),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushReplacementNamed(context, '/Cadastro');
+                    Navigator.pushReplacementNamed(context, '/');
                   },
                 ),
 
@@ -74,7 +77,7 @@ class BarraLateral extends StatelessWidget {
                   title: Text('Relatórios',style: Barra_Lateral_Styles.TextStyleButtons,),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushReplacementNamed(context, '/Cadastro');
+                    Navigator.pushReplacementNamed(context, '/');
                   },
                 ),
 
@@ -83,7 +86,7 @@ class BarraLateral extends StatelessWidget {
                   title: Text('Gestão de Usuários',style: Barra_Lateral_Styles.TextStyleButtons,),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushReplacementNamed(context, '/Cadastro');
+                    Navigator.pushReplacementNamed(context, '/Usuarios');
                   },
                 ),
 
@@ -110,9 +113,9 @@ class BarraLateral extends StatelessWidget {
                       child:Row(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          FaIcon(iconUser,color: Barra_Lateral_Styles.Usercolor,),
+                          NivelIcon(nivel:'${_authProvider.userNivel}',color:Barra_Lateral_Styles.Usercolor,),
                           const SizedBox(width: 13),
-                          Text('$userName',style:TextStyle(color: Barra_Lateral_Styles.Usercolor),),
+                          Text('${_authProvider.userNivel?.toUpperCase()}',style:TextStyle(color: Barra_Lateral_Styles.Usercolor,fontWeight: FontWeight.w500),),
                         ]
                       ),
                   ),
@@ -121,9 +124,10 @@ class BarraLateral extends StatelessWidget {
                   },
                 ),
                 IconButton(
-                  tooltip: 'Sair',
+                  tooltip: 'Sair da conta',
                   onPressed: () {
-                     Navigator.pop(context);
+                    _authProvider.logout();
+                     Navigator.pushReplacementNamed(context,'/');
                   },
                   icon: FaIcon(FontAwesomeIcons.rightFromBracket,color: const Color.fromARGB(255, 179, 45, 36),)
                 )

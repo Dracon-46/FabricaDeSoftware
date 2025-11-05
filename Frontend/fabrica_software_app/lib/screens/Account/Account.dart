@@ -1,16 +1,23 @@
 import 'package:fabrica_software_app/Widgets/App_bar/App_bar.dart';
 import 'package:fabrica_software_app/Widgets/Barra_lateral/Barra_Lateral.dart';
+import 'package:fabrica_software_app/Widgets/Nivel_icon/Nivel_icon.dart';
+import 'package:fabrica_software_app/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; 
+import 'package:provider/provider.dart';
+
 
 
 class Account extends StatelessWidget {
   const Account({super.key});
 
+
   @override
   Widget build(BuildContext context) {
+    final _authProvider = context.watch<AuthProvider>();
+    String nivelDoUsuario = _authProvider.userNivel ?? 'USUARIO';
     return Scaffold(
-      drawer: BarraLateral(iconUser: FontAwesomeIcons.dragon, userName:'Master'),
+      drawer: BarraLateral(),
       appBar: CustomAppBar(title: 'Perfil do Usuário'),
       
       backgroundColor: const Color(0xFFF1F5F9), 
@@ -41,8 +48,8 @@ class Account extends StatelessWidget {
                     alignment: Alignment.center,
                     child: Column(
                       children: [
-                        const Text(
-                          'MASTER',
+                        Text(
+                          '${_authProvider.userNivel?.toUpperCase()}',
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -50,14 +57,10 @@ class Account extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        const CircleAvatar(
+                        CircleAvatar(
                           radius: 40,
                           backgroundColor: Color(0xFF2D3748),
-                          child: FaIcon(
-                            FontAwesomeIcons.dragon,
-                            color: Colors.white,
-                            size: 40,
-                          ),
+                          child: NivelIcon(nivel:nivelDoUsuario,size: 40,color: Colors.white,)
                         ),
                       ],
                     ),
@@ -75,7 +78,7 @@ class Account extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   TextField(
-                    controller: TextEditingController(text: 'João Silva Santos'),
+                    controller: TextEditingController(text:_authProvider.nome ??'Nome indisponível'),
                     readOnly: true,
                     decoration: InputDecoration(
                       filled: true,
@@ -103,7 +106,7 @@ class Account extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   TextField(
-                    controller: TextEditingController(text: 'joao.silva@empresa.com'),
+                    controller: TextEditingController(text: _authProvider.email ?? 'E-mail não disponível'),
                     readOnly: true,
                     decoration: InputDecoration(
                       filled: true,
@@ -140,7 +143,9 @@ class Account extends StatelessWidget {
                       const SizedBox(width: 16),
 
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: (
+
+                        ) {},
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           backgroundColor: Colors.red,

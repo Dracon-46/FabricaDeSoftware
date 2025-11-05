@@ -7,6 +7,8 @@ class AuthProvider with ChangeNotifier {
   String? _error;
   bool? _isAuthenticated;
   String? _userNivel;
+  String? _email;
+  String? _nome;
 
   AuthProvider() {
     _init();
@@ -16,6 +18,8 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get userNivel => _userNivel;
+  String? get email => _email;
+   String? get nome => _nome;
 
   Future<void> _init() async {
     _isAuthenticated = await _authService.isAuthenticated;
@@ -36,6 +40,8 @@ class AuthProvider with ChangeNotifier {
       } else {
         _isAuthenticated = true;
         _userNivel = await _authService.userNivel;
+        _email = email;
+        _nome = await _authService.userName;
       }
       notifyListeners();
       return success;
@@ -51,6 +57,7 @@ class AuthProvider with ChangeNotifier {
     await _authService.logout();
     _isAuthenticated = false;
     _userNivel = null;
+    _email = null;
     notifyListeners();
   }
 }

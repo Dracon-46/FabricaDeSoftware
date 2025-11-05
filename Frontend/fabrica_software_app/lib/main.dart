@@ -2,6 +2,7 @@ import 'package:fabrica_software_app/providers/menu_provider.dart';
 import 'package:fabrica_software_app/screens/Api_teste/Teste.dart';
 import 'package:fabrica_software_app/screens/Cadastro/Cadastro_screen.dart';
 import 'package:fabrica_software_app/screens/Account/Account.dart';
+import 'package:fabrica_software_app/screens/Usuarios/Usuarios.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/usuarios_provider.dart';
@@ -16,7 +17,10 @@ void main() {
   runApp(
     MultiProvider(
       providers:[
-        ChangeNotifierProvider(create: (_){return MenuProvider();})
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => UsuariosProvider()),
+        ChangeNotifierProvider(create: (_) => ProjetosProvider()),
+        ChangeNotifierProvider(create: (_) { return ClientesProvider();}),
       ],  
       child: MyApp(),
     )
@@ -28,14 +32,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => UsuariosProvider()),
-        ChangeNotifierProvider(create: (_) => ProjetosProvider()),
-        ChangeNotifierProvider(create: (_) => ClientesProvider()),
-      ],
-      child: MaterialApp(
+    return MaterialApp(
         initialRoute: '/',
         routes: {
           '/':(context){return const Loginscreen();},
@@ -43,14 +40,14 @@ class MyApp extends StatelessWidget {
           '/ApiTest':(context){return const ApiTestScreen();},
           '/Gerenciar_Projetos':(context){return const GerenciarProjetos();},
           '/Teste':(context){return const Teste();},
-          '/Account':(context){return const Account();}
+          '/Account':(context){return const Account();},
+          '/Usuarios':(context){return const Usuarios();}
         },
         title: 'Fábrica de Software',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
         ),
-      ),
-    );
+      );
   }
 }

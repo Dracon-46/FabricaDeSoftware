@@ -1,6 +1,7 @@
 import 'package:fabrica_software_app/Widgets/App_bar/App_bar.dart';
 import 'package:fabrica_software_app/Widgets/Barra_lateral/Barra_Lateral.dart';
 import 'package:fabrica_software_app/Widgets/Modal_de_criacao/Modal_de_criacao.dart';
+import 'package:fabrica_software_app/Widgets/Nivel_icon/Nivel_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -10,10 +11,8 @@ class Teste extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: BarraLateral(
-        iconUser: FontAwesomeIcons.dragon,
-        userName: 'Usuario',
-      ),
+      drawer: BarraLateral(),
+      
       appBar: CustomAppBar(title:'Meu titulo'),
       
       body: Center(
