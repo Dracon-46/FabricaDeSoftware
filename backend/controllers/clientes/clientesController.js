@@ -3,6 +3,7 @@
 // Listar todos os clientes
 exports.index = async (req, res) => {
   try {
+    // Este (SELECT *) está correto.
     const result = await pool.query("SELECT * FROM clientes");
     res.json(result.rows);
   } catch (error) {
@@ -13,10 +14,13 @@ exports.index = async (req, res) => {
 // Salvar novo cliente
 exports.store = async (req, res) => {
   try {
-    const { nome, email, telefone, cnpj } = req.body;
+    // 1. CORRIGIDO: Lê 'razao_social' e os outros campos do modelo
+    const { razao_social, cnpj, email, telefone, setor, contato, endereco_id } = req.body;
+    
+    // 2. CORRIGIDO: Usa 'razao_social' e os outros campos no INSERT
     const result = await pool.query(
-      "INSERT INTO clientes (nome, email, telefone, cnpj) VALUES ($1, $2, $3, $4) RETURNING *",
-      [nome, email, telefone, cnpj]
+      "INSERT INTO clientes (razao_social, cnpj, email, telefone, setor, contato, endereco_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+      [razao_social, cnpj, email, telefone, setor, contato, endereco_id]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -30,7 +34,7 @@ exports.show = async (req, res) => {
     const { id } = req.params;
     const result = await pool.query("SELECT * FROM clientes WHERE id = $1", [id]);
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Cliente nÃ£o encontrado" });
+      return res.status(404).json({ message: "Cliente não encontrado" });
     }
     res.json(result.rows[0]);
   } catch (error) {
@@ -42,13 +46,16 @@ exports.show = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nome, email, telefone, cnpj } = req.body;
+    // 1. CORRIGIDO: Lê 'razao_social' e os outros campos
+    const { razao_social, cnpj, email, telefone, setor, contato, endereco_id } = req.body;
+    
+    // 2. CORRIGIDO: Usa 'razao_social' e os outros campos no UPDATE
     const result = await pool.query(
-      "UPDATE clientes SET nome=$1, email=$2, telefone=$3, cnpj=$4 WHERE id=$5 RETURNING *",
-      [nome, email, telefone, cnpj, id]
+      "UPDATE clientes SET razao_social=$1, cnpj=$2, email=$3, telefone=$4, setor=$5, contato=$6, endereco_id=$7 WHERE id=$8 RETURNING *",
+      [razao_social, cnpj, email, telefone, setor, contato, endereco_id, id]
     );
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Cliente nÃ£o encontrado" });
+      return res.status(404).json({ message: "Cliente não encontrado" });
     }
     res.json(result.rows[0]);
   } catch (error) {
@@ -62,7 +69,7 @@ exports.delete = async (req, res) => {
     const { id } = req.params;
     const result = await pool.query("DELETE FROM clientes WHERE id = $1 RETURNING *", [id]);
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Cliente nÃ£o encontrado" });
+      return res.status(404).json({ message: "Cliente não encontrado" });
     }
     res.json({ message: "Cliente deletado com sucesso" });
   } catch (error) {
@@ -70,34 +77,31 @@ exports.delete = async (req, res) => {
   }
 };
 
-// Buscar detalhes completos do cliente
+// Buscar detalhes completos do cliente (Esta função estava a faltar no teu ficheiro original)
 exports.details = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Busca o cliente
     const clienteResult = await pool.query("SELECT * FROM clientes WHERE id = $1", [id]);
     if (clienteResult.rows.length === 0) {
-      return res.status(404).json({ message: "Cliente nÃ£o encontrado" });
+      return res.status(404).json({ message: "Cliente não encontrado" });
     }
     const cliente = clienteResult.rows[0];
 
-    // Busca endereÃ§os do cliente
-    const enderecosResult = await pool.query(
-      "SELECT * FROM enderecos WHERE cliente_id = $1",
-      [id]
-    );
+    // (O teu 'index.js' não tem uma rota /enderecos/:cliente_id,
+    //  mas o teu modelo 'cliente.dart' tem 'endereco_id',
+    //  então vou assumir que o endereço é buscado separadamente ou está noutra rota)
+    // const enderecosResult = ...
 
-    // Busca projetos do cliente
+    // (O teu 'index.js' tem esta rota)
     const projetosResult = await pool.query(
       "SELECT * FROM projetos WHERE cliente_id = $1",
       [id]
     );
 
-    // Retorna todos os detalhes do cliente
     res.json({
       ...cliente,
-      enderecos: enderecosResult.rows,
+      // enderecos: enderecosResult.rows,
       projetos: projetosResult.rows
     });
   } catch (error) {

@@ -23,17 +23,27 @@ class Cliente {
 
   factory Cliente.fromJson(Map<String, dynamic> json) {
     return Cliente(
-      id: json['id'],
+      
+      // --- CORRIGIDO ---
+      // 1. Verifica se 'id' não é nulo.
+      // 2. Converte para String (segurança, caso a API mande um int)
+      // 3. Converte (parse) a String para int.
+      id: json['id'] == null ? null : int.parse(json['id'].toString()),
+      
       razaoSocial: json['razao_social'],
       cnpj: json['cnpj'],
       email: json['email'],
       telefone: json['telefone'],
       setor: json['setor'],
       contato: json['contato'],
+      
       dataCriacao: json['data_criacao'] != null 
           ? DateTime.parse(json['data_criacao']) 
           : null,
-      enderecoId: json['endereco_id'],
+      
+      // --- CORRIGIDO ---
+      // (Assumindo que 'endereco_id' NUNCA será nulo)
+      enderecoId: int.parse(json['endereco_id'].toString()),
     );
   }
 

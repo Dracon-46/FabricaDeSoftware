@@ -2,7 +2,7 @@ import 'package:fabrica_software_app/providers/menu_provider.dart';
 import 'package:fabrica_software_app/screens/Api_teste/Teste.dart';
 import 'package:fabrica_software_app/screens/Cadastro/Cadastro_screen.dart';
 import 'package:fabrica_software_app/screens/Account/Account.dart';
-import 'package:fabrica_software_app/screens/Usuarios/Usuarios.dart';
+import 'package:fabrica_software_app/screens/Clientes/Clientes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/usuarios_provider.dart';
@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
           '/Gerenciar_Projetos':(context){return const GerenciarProjetos();},
           '/Teste':(context){return const Teste();},
           '/Account':(context){return const Account();},
-          '/Usuarios':(context){return const Usuarios();}
+          '/Clientes':(context){return const Clientes();}
         },
         title: 'Fábrica de Software',
         theme: ThemeData(
