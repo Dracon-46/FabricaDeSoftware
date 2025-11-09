@@ -35,7 +35,20 @@ class _ClientesState extends State<Clientes> {
       appBar: CustomAppBar(
         title: 'Gestão de Clientes',
         listaActions: [
-          ElevatedButton(onPressed: () {}, child: Text('botão')),
+          ElevatedButton.icon(
+            // 1. Chama a função de CRIAR
+            onPressed: () => _abrirModalCriarCliente(context), 
+            // 2. Mudei o estilo para combinar com o design
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Novo Cliente'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.pink, // Cor rosa/magenta
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -160,17 +173,29 @@ class _ClientesState extends State<Clientes> {
   }
 }
 
+// (Função para Ver, Editar, Apagar - já existe no teu ficheiro)
 void _abrirModalCliente(BuildContext context, Cliente cliente, ClienteModalMode modo) {
   showDialog(
     context: context,
-    barrierDismissible: false, // Impede de fechar clicando fora
+    barrierDismissible: false,
     builder: (ctx) => ClienteModal(
-      mode: modo,       // Passa o MODO
-      cliente: cliente, // Passa o CLIENTE
+      mode: modo,
+      cliente: cliente,
     ),
   );
 }
 
+// --- CORREÇÃO 3: Adiciona a função de "Criar" ---
+void _abrirModalCriarCliente(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierDismissible: false, 
+    builder: (ctx) => const ClienteModal(
+      mode: ClienteModalMode.create,
+      // (Não passamos 'cliente', está correto)
+    ),
+  );
+}
 
 
 
