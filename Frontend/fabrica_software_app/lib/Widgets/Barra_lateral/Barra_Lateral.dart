@@ -95,7 +95,7 @@ class BarraLateral extends StatelessWidget {
                   title: Text('Gestão de Clientes',style: Barra_Lateral_Styles.TextStyleButtons,),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushReplacementNamed(context, '/Cadastro');
+                    Navigator.pushReplacementNamed(context, '/Clientes');
                   },
                 ),
 

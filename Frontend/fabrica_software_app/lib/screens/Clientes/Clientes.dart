@@ -97,21 +97,16 @@ class _ClientesState extends State<Clientes> {
                           // --- INÍCIO: Conteúdo de _buildClientRow (Header) ---
                           child: Container(
                             decoration: BoxDecoration(
-                              border: null, // 'isHeader' é true
+                              border: null, 
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                            padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Expanded(
                                   flex: 3,
-                                  child: Row(
-                                    children: [
-                                      Text(''), // 'avatar'
-                                      // 'if (!isHeader)' é falso, então não há SizedBox
+                                  child:
                                       Expanded(child: Text('Razão Social', style: TextStyle(fontWeight: FontWeight.bold))), // 'nome'
-                                    ],
-                                  ),
                                 ),
                                 Expanded(flex: 2, child: Text('CNPJ', style: TextStyle(fontWeight: FontWeight.bold))), // 'cnpj'
                                 Expanded(flex: 1, child: Text('Setor', style: TextStyle(fontWeight: FontWeight.bold))), // 'setor'
