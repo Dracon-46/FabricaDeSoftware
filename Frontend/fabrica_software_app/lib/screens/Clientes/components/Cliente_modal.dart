@@ -4,7 +4,6 @@ import 'package:fabrica_software_app/models/cliente.dart';
 import 'package:provider/provider.dart';
 import 'package:fabrica_software_app/providers/clientes_provider.dart';
 
-// 1. O ENUM (já o tinhas)
 enum ClienteModalMode {
   view,
   edit,
@@ -14,13 +13,12 @@ enum ClienteModalMode {
 
 class ClienteModal extends StatefulWidget {
   final ClienteModalMode mode;
-  // 2. Cliente é nulável (opcional)
   final Cliente? cliente; 
 
   const ClienteModal({
     super.key,
     required this.mode,
-    this.cliente, // <-- 'required' removido
+    this.cliente,
   });
 
   @override
@@ -28,36 +26,40 @@ class ClienteModal extends StatefulWidget {
 }
 
 class _ClienteModalState extends State<ClienteModal> {
-  late TextEditingController _nomeController;
+  // 1. Controladores para TODOS os campos do teu modelo
+  late TextEditingController _razaoSocialController;
   late TextEditingController _emailController;
   late TextEditingController _cnpjController;
   late TextEditingController _telefoneController;
   late TextEditingController _contatoController;
   late TextEditingController _setorController;
-  
+  late TextEditingController _enderecoIdController;
   
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    // 3. O InitState lida com 'cliente' ser nulo (modo create)
-    _nomeController = TextEditingController(text: widget.cliente?.razaoSocial ?? '');
+    // 2. Inicializa TODOS os controladores
+    _razaoSocialController = TextEditingController(text: widget.cliente?.razaoSocial ?? '');
     _emailController = TextEditingController(text: widget.cliente?.email ?? '');
     _cnpjController = TextEditingController(text: widget.cliente?.cnpj ?? '');
-    _contatoController = TextEditingController(text: widget.cliente?.contato ?? '');
     _telefoneController = TextEditingController(text: widget.cliente?.telefone ?? '');
+    _contatoController = TextEditingController(text: widget.cliente?.contato ?? '');
     _setorController = TextEditingController(text: widget.cliente?.setor ?? '');
+    _enderecoIdController = TextEditingController(text: widget.cliente?.enderecoId.toString() ?? '');
   }
 
   @override
   void dispose() {
-    _nomeController.dispose();
+    // 3. Limpa TODOS os controladores
+    _razaoSocialController.dispose();
     _emailController.dispose();
     _cnpjController.dispose();
-    _contatoController.dispose();
     _telefoneController.dispose();
+    _contatoController.dispose();
     _setorController.dispose();
+    _enderecoIdController.dispose();
     super.dispose();
   }
 
@@ -74,7 +76,13 @@ class _ClienteModalState extends State<ClienteModal> {
             children: [
               _buildHeader(context),
               const Divider(height: 24),
-              _buildBody(context),
+              // 4. Adiciona Flexible + SingleChildScrollView
+              //    (Impede o modal de "estourar" com o teclado)
+              Flexible(
+                child: SingleChildScrollView(
+                  child: _buildBody(context),
+                ),
+              ),
               const SizedBox(height: 24),
               _buildFooter(context),
             ],
@@ -83,8 +91,6 @@ class _ClienteModalState extends State<ClienteModal> {
       ),
     );
   }
-
-  // --- Funções Auxiliares de Build ---
 
   Widget _buildHeader(BuildContext context) {
     String title;
@@ -107,7 +113,6 @@ class _ClienteModalState extends State<ClienteModal> {
         icon = FontAwesomeIcons.trash;
         iconColor = Colors.red;
         break;
-      // 4. CORRIGIDO: Adiciona o case 'create'
       case ClienteModalMode.create:
         title = 'Criar Novo Cliente';
         icon = FontAwesomeIcons.plus;
@@ -137,28 +142,33 @@ class _ClienteModalState extends State<ClienteModal> {
     switch (widget.mode) {
       case ClienteModalMode.view:
         return Column(
+          // 5. Mostra TODOS os campos
           children: [
             _buildReadOnlyField("Razão Social", widget.cliente!.razaoSocial),
             _buildReadOnlyField("CNPJ", widget.cliente!.cnpj),
             _buildReadOnlyField("E-mail", widget.cliente!.email),
+            _buildReadOnlyField("Telefone", widget.cliente!.telefone ?? 'N/A'),
             _buildReadOnlyField("Setor", widget.cliente!.setor ?? 'N/A'),
+            _buildReadOnlyField("Contato", widget.cliente!.contato ?? 'N/A'),
+            _buildReadOnlyField("Endereço ID", widget.cliente!.enderecoId.toString()),
           ],
         );
       
-      // 5. CORRIGIDO: 'create' e 'edit' mostram o mesmo formulário
       case ClienteModalMode.edit:
       case ClienteModalMode.create:
         return Form(
           key: _formKey,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              _buildEditableField("Razão Social", _nomeController),
-              _buildEditableField("CNPJ", _cnpjController),
-              _buildEditableField("E-mail", _emailController),
-              _buildEditableField("Setor", _setorController),
-              _buildEditableField("Telefone", _telefoneController),
-              _buildEditableField("contato", _contatoController),
-             
+              // 6. Mostra TODOS os campos para edição
+              _buildEditableField("Razão Social *", _razaoSocialController),
+              _buildEditableField("CNPJ *", _cnpjController),
+              _buildEditableField("E-mail *", _emailController),
+              _buildEditableField("Telefone", _telefoneController, isRequired: false),
+              _buildEditableField("Setor", _setorController, isRequired: false),
+              _buildEditableField("Contato", _contatoController, isRequired: false),
+              _buildEditableField("ID do Endereço *", _enderecoIdController, isNumeric: true),
             ],
           ),
         );
@@ -181,7 +191,6 @@ class _ClienteModalState extends State<ClienteModal> {
   }
 
   Widget _buildFooter(BuildContext context) {
-    // Se for 'view', só tem botão de Fechar
     if (widget.mode == ClienteModalMode.view) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -194,7 +203,6 @@ class _ClienteModalState extends State<ClienteModal> {
       );
     }
 
-    // 6. CORRIGIDO: Lógica unificada para 'create', 'edit', 'delete'
     String actionText;
     Color actionColor;
     VoidCallback? actionCallback;
@@ -203,16 +211,19 @@ class _ClienteModalState extends State<ClienteModal> {
       case ClienteModalMode.edit:
         actionText = 'Salvar Alterações';
         actionColor = Theme.of(context).primaryColor;
-        actionCallback = () {
+        actionCallback = () async {
           if (_formKey.currentState?.validate() ?? false) {
+            // 7. Envia TODOS os dados
             final data = {
-              'razao_social': _nomeController.text,
+              'razao_social': _razaoSocialController.text,
               'cnpj': _cnpjController.text,
               'email': _emailController.text,
-              // (Adiciona os outros campos)
-              'endereco_id': widget.cliente!.enderecoId, // Mantém o ID original
+              'telefone': _telefoneController.text.isEmpty ? null : _telefoneController.text,
+              'setor': _setorController.text.isEmpty ? null : _setorController.text,
+              'contato': _contatoController.text.isEmpty ? null : _contatoController.text,
+              'endereco_id': int.parse(_enderecoIdController.text),
             };
-            context.read<ClientesProvider>().atualizarCliente(widget.cliente!.id!, data);
+            await context.read<ClientesProvider>().atualizarCliente(widget.cliente!.id!, data);
             Navigator.pop(context);
           }
         };
@@ -220,33 +231,35 @@ class _ClienteModalState extends State<ClienteModal> {
       case ClienteModalMode.delete:
         actionText = 'Excluir';
         actionColor = Colors.red;
-        actionCallback = () {
-          context.read<ClientesProvider>().excluirCliente(widget.cliente!.id!);
+        actionCallback = () async {
+          await context.read<ClientesProvider>().excluirCliente(widget.cliente!.id!);
           Navigator.pop(context);
         };
         break;
       case ClienteModalMode.create:
         actionText = 'Criar Cliente';
         actionColor = Colors.green;
-        actionCallback = () {
+        actionCallback = () async {
           if (_formKey.currentState?.validate() ?? false) {
+            // 7. Envia TODOS os dados
             final data = {
-              'razao_social': _nomeController.text,
+              'razao_social': _razaoSocialController.text,
               'cnpj': _cnpjController.text,
               'email': _emailController.text,
-              // IMPORTANTE: Adiciona campos obrigatórios
-              'endereco_id': 1, // Exemplo!
+              'telefone': _telefoneController.text.isEmpty ? null : _telefoneController.text,
+              'setor': _setorController.text.isEmpty ? null : _setorController.text,
+              'contato': _contatoController.text.isEmpty ? null : _contatoController.text,
+              'endereco_id': int.parse(_enderecoIdController.text),
             };
-            context.read<ClientesProvider>().criarCliente(data);
+            await context.read<ClientesProvider>().criarCliente(data);
             Navigator.pop(context);
           }
         };
         break;
       case ClienteModalMode.view:
-        return const SizedBox.shrink(); // Não deve acontecer
+        return const SizedBox.shrink();
     }
 
-    // Retorna os botões (Cancelar + Ação)
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -267,7 +280,6 @@ class _ClienteModalState extends State<ClienteModal> {
     );
   }
 
-  // ... (funções _buildReadOnlyField e _buildEditableField) ...
   Widget _buildReadOnlyField(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -284,7 +296,8 @@ class _ClienteModalState extends State<ClienteModal> {
     );
   }
 
-  Widget _buildEditableField(String label, TextEditingController controller) {
+  // 8. ATUALIZADO: _buildEditableField com validação extra
+  Widget _buildEditableField(String label, TextEditingController controller, {bool isRequired = true, bool isNumeric = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -293,9 +306,13 @@ class _ClienteModalState extends State<ClienteModal> {
           labelText: label,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         ),
+        keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
         validator: (value) {
-          if (value == null || value.isEmpty) {
+          if (isRequired && (value == null || value.isEmpty)) {
             return 'Este campo é obrigatório';
+          }
+          if (isNumeric && value != null && value.isNotEmpty && int.tryParse(value) == null) {
+            return 'Por favor, insira um número válido';
           }
           return null;
         },

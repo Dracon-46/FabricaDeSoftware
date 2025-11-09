@@ -57,7 +57,7 @@ class ClienteRow extends StatelessWidget {
             flex: 1,
             child: Chip(
               label: Text('$setor', style: TextStyle(fontSize: 12, color: Colors.blue.shade900)),
-              backgroundColor: Colors.blue.withOpacity(0.1),
+              backgroundColor: const Color.fromARGB(255, 51, 243, 33).withOpacity(0.1),
               side: BorderSide.none,
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
             ),
