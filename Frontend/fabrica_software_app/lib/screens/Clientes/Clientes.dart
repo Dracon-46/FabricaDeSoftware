@@ -1,6 +1,5 @@
 import 'package:fabrica_software_app/Widgets/App_bar/App_bar.dart';
 import 'package:fabrica_software_app/Widgets/Barra_lateral/Barra_Lateral.dart';
-import 'package:fabrica_software_app/Widgets/Nivel_icon/Nivel_icon.dart';
 import 'package:fabrica_software_app/models/cliente.dart';
 import 'package:fabrica_software_app/providers/clientes_provider.dart';
 import 'package:fabrica_software_app/screens/Clientes/components/ClienteRow.dart';

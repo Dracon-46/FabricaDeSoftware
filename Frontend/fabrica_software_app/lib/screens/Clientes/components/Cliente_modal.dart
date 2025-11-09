@@ -4,6 +4,12 @@ import 'package:fabrica_software_app/models/cliente.dart';
 import 'package:provider/provider.dart';
 import 'package:fabrica_software_app/providers/clientes_provider.dart';
 
+// 1. IMPORTA OS NOVOS FICHEIROS (MODELO E MODAL DE ENDEREÇO)
+// (Certifica-te que os caminhos estão corretos)
+import 'package:fabrica_software_app/models/endereco.dart'; 
+import 'package:fabrica_software_app/screens/Clientes/components/Endereco_modal.dart';
+
+
 enum ClienteModalMode {
   view,
   edit,
@@ -26,40 +32,46 @@ class ClienteModal extends StatefulWidget {
 }
 
 class _ClienteModalState extends State<ClienteModal> {
-  // 1. Controladores para TODOS os campos do teu modelo
   late TextEditingController _razaoSocialController;
   late TextEditingController _emailController;
   late TextEditingController _cnpjController;
   late TextEditingController _telefoneController;
   late TextEditingController _contatoController;
   late TextEditingController _setorController;
-  late TextEditingController _enderecoIdController;
+  // late TextEditingController _enderecoIdController; // <-- REMOVIDO
+  
+  // 2. ADICIONA UMA VARIÁVEL DE ESTADO PARA O ENDEREÇO ID
+  int? _tempEnderecoId;
   
   final _formKey = GlobalKey<FormState>();
+  
+  // (Opcional) Getter para saber se está a editar
+  bool get _isEditing => widget.mode == ClienteModalMode.edit;
+
 
   @override
   void initState() {
     super.initState();
-    // 2. Inicializa TODOS os controladores
     _razaoSocialController = TextEditingController(text: widget.cliente?.razaoSocial ?? '');
     _emailController = TextEditingController(text: widget.cliente?.email ?? '');
     _cnpjController = TextEditingController(text: widget.cliente?.cnpj ?? '');
     _telefoneController = TextEditingController(text: widget.cliente?.telefone ?? '');
     _contatoController = TextEditingController(text: widget.cliente?.contato ?? '');
     _setorController = TextEditingController(text: widget.cliente?.setor ?? '');
-    _enderecoIdController = TextEditingController(text: widget.cliente?.enderecoId.toString() ?? '');
+    
+    // 3. INICIALIZA A VARIÁVEL DE ESTADO DO ENDEREÇO
+    _tempEnderecoId = widget.cliente?.enderecoId;
   }
 
   @override
   void dispose() {
-    // 3. Limpa TODOS os controladores
     _razaoSocialController.dispose();
     _emailController.dispose();
     _cnpjController.dispose();
     _telefoneController.dispose();
     _contatoController.dispose();
     _setorController.dispose();
-    _enderecoIdController.dispose();
+    // _enderecoIdController.dispose(); // <-- REMOVIDO
     super.dispose();
   }
 
@@ -76,8 +88,6 @@ class _ClienteModalState extends State<ClienteModal> {
             children: [
               _buildHeader(context),
               const Divider(height: 24),
-              // 4. Adiciona Flexible + SingleChildScrollView
-              //    (Impede o modal de "estourar" com o teclado)
               Flexible(
                 child: SingleChildScrollView(
                   child: _buildBody(context),
@@ -142,7 +152,6 @@ class _ClienteModalState extends State<ClienteModal> {
     switch (widget.mode) {
       case ClienteModalMode.view:
         return Column(
-          // 5. Mostra TODOS os campos
           children: [
             _buildReadOnlyField("Razão Social", widget.cliente!.razaoSocial),
             _buildReadOnlyField("CNPJ", widget.cliente!.cnpj),
@@ -150,7 +159,16 @@ class _ClienteModalState extends State<ClienteModal> {
             _buildReadOnlyField("Telefone", widget.cliente!.telefone ?? 'N/A'),
             _buildReadOnlyField("Setor", widget.cliente!.setor ?? 'N/A'),
             _buildReadOnlyField("Contato", widget.cliente!.contato ?? 'N/A'),
-            _buildReadOnlyField("Endereço ID", widget.cliente!.enderecoId.toString()),
+            
+            // 4. SUBSTITUI o TextField de ID por um Botão
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.location_on_outlined),
+              label: Text("Ver Endereço"),
+              onPressed: () {
+                _abrirModalEndereco(context);
+              },
+            )
           ],
         );
       
@@ -161,14 +179,26 @@ class _ClienteModalState extends State<ClienteModal> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 6. Mostra TODOS os campos para edição
               _buildEditableField("Razão Social *", _razaoSocialController),
               _buildEditableField("CNPJ *", _cnpjController),
               _buildEditableField("E-mail *", _emailController),
               _buildEditableField("Telefone", _telefoneController, isRequired: false),
               _buildEditableField("Setor", _setorController, isRequired: false),
               _buildEditableField("Contato", _contatoController, isRequired: false),
-              _buildEditableField("ID do Endereço *", _enderecoIdController, isNumeric: true),
+              
+              // 5. SUBSTITUI o TextField de ID por um Botão
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.edit_location_outlined),
+                label: Text(
+                  _tempEnderecoId != null
+                      ? "Editar Endereço"
+                      : "Adicionar Endereço"
+                ),
+                onPressed: () {
+                  _abrirModalEndereco(context);
+                },
+              ),
             ],
           ),
         );
@@ -189,6 +219,60 @@ class _ClienteModalState extends State<ClienteModal> {
         );
     }
   }
+
+  // --- 6. ADICIONA A FUNÇÃO PARA ABRIR O MODAL FILHO ---
+  void _abrirModalEndereco(BuildContext context) async {
+    
+    // Converte o modo do Pai (Cliente) para o modo do Filho (Endereço)
+    EnderecoModalMode modoFilho;
+    
+    switch (widget.mode) {
+      case ClienteModalMode.view:
+        modoFilho = EnderecoModalMode.view;
+        break;
+      case ClienteModalMode.edit:
+        // Se já temos um ID, editamos. Se não, criamos.
+        modoFilho = (_tempEnderecoId == null) ? EnderecoModalMode.create : EnderecoModalMode.edit;
+        break;
+      case ClienteModalMode.create:
+        // Se estamos a criar um cliente, também estamos a criar um endereço
+        modoFilho = EnderecoModalMode.create;
+        break;
+      default:
+        return; // Não abre o modal de endereço se estiver a apagar
+    }
+
+    // TODO: Buscar o 'Endereco' real do provider usando _tempEnderecoId
+    // Por agora, vamos simular (como na tua sugestão)
+    Endereco? enderecoAtual = (_tempEnderecoId != null)
+      ? Endereco(
+          id: _tempEnderecoId,
+          logradouro: "Rua Fictícia (Buscada)",
+          cep: "12345-678",
+          cidade: "Cidade Fictícia",
+          estado: "SP",
+          pais: "Brasil"
+        )
+      : null;
+
+    // Chama o Modal Filho (Pilha de Diálogos) e ESPERA (await) pelo resultado (o ID)
+    final novoEnderecoId = await showDialog<int>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => EnderecoModal(
+        mode: modoFilho,
+        endereco: enderecoAtual,
+      ),
+    );
+
+    // 7. ATUALIZA O ESTADO quando o modal filho fechar
+    if (novoEnderecoId != null) {
+      setState(() {
+        _tempEnderecoId = novoEnderecoId;
+      });
+    }
+  }
+
 
   Widget _buildFooter(BuildContext context) {
     if (widget.mode == ClienteModalMode.view) {
@@ -212,8 +296,14 @@ class _ClienteModalState extends State<ClienteModal> {
         actionText = 'Salvar Alterações';
         actionColor = Theme.of(context).primaryColor;
         actionCallback = () async {
+          // 8. VALIDA se o ID do endereço foi preenchido
+          if (_tempEnderecoId == null) {
+             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('Erro: Endereço é obrigatório.'), 
+                backgroundColor: Colors.red));
+             return;
+          }
           if (_formKey.currentState?.validate() ?? false) {
-            // 7. Envia TODOS os dados
             final data = {
               'razao_social': _razaoSocialController.text,
               'cnpj': _cnpjController.text,
@@ -221,7 +311,7 @@ class _ClienteModalState extends State<ClienteModal> {
               'telefone': _telefoneController.text.isEmpty ? null : _telefoneController.text,
               'setor': _setorController.text.isEmpty ? null : _setorController.text,
               'contato': _contatoController.text.isEmpty ? null : _contatoController.text,
-              'endereco_id': int.parse(_enderecoIdController.text),
+              'endereco_id': _tempEnderecoId, // <-- USA A VARIÁVEL DE ESTADO
             };
             await context.read<ClientesProvider>().atualizarCliente(widget.cliente!.id!, data);
             Navigator.pop(context);
@@ -240,8 +330,14 @@ class _ClienteModalState extends State<ClienteModal> {
         actionText = 'Criar Cliente';
         actionColor = Colors.green;
         actionCallback = () async {
+          // 8. VALIDA se o ID do endereço foi preenchido
+          if (_tempEnderecoId == null) {
+             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('Erro: Endereço é obrigatório.'), 
+                backgroundColor: Colors.red));
+             return;
+          }
           if (_formKey.currentState?.validate() ?? false) {
-            // 7. Envia TODOS os dados
             final data = {
               'razao_social': _razaoSocialController.text,
               'cnpj': _cnpjController.text,
@@ -249,7 +345,7 @@ class _ClienteModalState extends State<ClienteModal> {
               'telefone': _telefoneController.text.isEmpty ? null : _telefoneController.text,
               'setor': _setorController.text.isEmpty ? null : _setorController.text,
               'contato': _contatoController.text.isEmpty ? null : _contatoController.text,
-              'endereco_id': int.parse(_enderecoIdController.text),
+              'endereco_id': _tempEnderecoId, // <-- USA A VARIÁVEL DE ESTADO
             };
             await context.read<ClientesProvider>().criarCliente(data);
             Navigator.pop(context);
@@ -296,7 +392,6 @@ class _ClienteModalState extends State<ClienteModal> {
     );
   }
 
-  // 8. ATUALIZADO: _buildEditableField com validação extra
   Widget _buildEditableField(String label, TextEditingController controller, {bool isRequired = true, bool isNumeric = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
