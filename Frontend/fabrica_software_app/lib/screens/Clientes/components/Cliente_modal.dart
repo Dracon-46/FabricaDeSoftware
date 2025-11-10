@@ -1,13 +1,12 @@
+import 'package:fabrica_software_app/providers/endereco_provider.dart';
+import 'package:fabrica_software_app/screens/Clientes/components/Endereco_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:fabrica_software_app/models/cliente.dart';
 import 'package:provider/provider.dart';
 import 'package:fabrica_software_app/providers/clientes_provider.dart';
+import 'package:fabrica_software_app/models/endereco.dart';
 
-// 1. IMPORTA OS NOVOS FICHEIROS (MODELO E MODAL DE ENDEREÇO)
-// (Certifica-te que os caminhos estão corretos)
-import 'package:fabrica_software_app/models/endereco.dart'; 
-import 'package:fabrica_software_app/screens/Clientes/components/Endereco_modal.dart';
 
 
 enum ClienteModalMode {
@@ -20,10 +19,13 @@ enum ClienteModalMode {
 class ClienteModal extends StatefulWidget {
   final ClienteModalMode mode;
   final Cliente? cliente; 
+  // 2. ADICIONA O PROVIDER COMO PARÂMETRO OBRIGATÓRIO
+  final EnderecosProvider enderecosProvider;
 
   const ClienteModal({
     super.key,
     required this.mode,
+    required this.enderecosProvider, // 3. ADICIONA AO CONSTRUTOR
     this.cliente,
   });
 
@@ -38,14 +40,13 @@ class _ClienteModalState extends State<ClienteModal> {
   late TextEditingController _telefoneController;
   late TextEditingController _contatoController;
   late TextEditingController _setorController;
-  // late TextEditingController _enderecoIdController; // <-- REMOVIDO
   
-  // 2. ADICIONA UMA VARIÁVEL DE ESTADO PARA O ENDEREÇO ID
   int? _tempEnderecoId;
   
   final _formKey = GlobalKey<FormState>();
   
-  // (Opcional) Getter para saber se está a editar
+  bool _isClienteModalLoading = false;
+
   bool get _isEditing => widget.mode == ClienteModalMode.edit;
 
 
@@ -59,7 +60,6 @@ class _ClienteModalState extends State<ClienteModal> {
     _contatoController = TextEditingController(text: widget.cliente?.contato ?? '');
     _setorController = TextEditingController(text: widget.cliente?.setor ?? '');
     
-    // 3. INICIALIZA A VARIÁVEL DE ESTADO DO ENDEREÇO
     _tempEnderecoId = widget.cliente?.enderecoId;
   }
 
@@ -71,12 +71,28 @@ class _ClienteModalState extends State<ClienteModal> {
     _telefoneController.dispose();
     _contatoController.dispose();
     _setorController.dispose();
-    // _enderecoIdController.dispose(); // <-- REMOVIDO
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final clientesProvider = context.watch<ClientesProvider>();
+    if (clientesProvider.isLoading && _isClienteModalLoading) {
+      return const Dialog(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Salvando Cliente...'),
+            ],
+          ),
+        ),
+      );
+    }
+    
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: ConstrainedBox(
@@ -90,7 +106,12 @@ class _ClienteModalState extends State<ClienteModal> {
               const Divider(height: 24),
               Flexible(
                 child: SingleChildScrollView(
-                  child: _buildBody(context),
+                  child: _isClienteModalLoading 
+                      ? const Center(child: Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: CircularProgressIndicator(),
+                        ))
+                      : _buildBody(context),
                 ),
               ),
               const SizedBox(height: 24),
@@ -160,11 +181,10 @@ class _ClienteModalState extends State<ClienteModal> {
             _buildReadOnlyField("Setor", widget.cliente!.setor ?? 'N/A'),
             _buildReadOnlyField("Contato", widget.cliente!.contato ?? 'N/A'),
             
-            // 4. SUBSTITUI o TextField de ID por um Botão
             const SizedBox(height: 16),
             OutlinedButton.icon(
               icon: const Icon(Icons.location_on_outlined),
-              label: Text("Ver Endereço"),
+              label: const Text("Ver Endereço"),
               onPressed: () {
                 _abrirModalEndereco(context);
               },
@@ -186,7 +206,6 @@ class _ClienteModalState extends State<ClienteModal> {
               _buildEditableField("Setor", _setorController, isRequired: false),
               _buildEditableField("Contato", _contatoController, isRequired: false),
               
-              // 5. SUBSTITUI o TextField de ID por um Botão
               const SizedBox(height: 16),
               OutlinedButton.icon(
                 icon: const Icon(Icons.edit_location_outlined),
@@ -220,10 +239,9 @@ class _ClienteModalState extends State<ClienteModal> {
     }
   }
 
-  // --- 6. ADICIONA A FUNÇÃO PARA ABRIR O MODAL FILHO ---
+  // 4. FUNÇÃO ATUALIZADA
   void _abrirModalEndereco(BuildContext context) async {
     
-    // Converte o modo do Pai (Cliente) para o modo do Filho (Endereço)
     EnderecoModalMode modoFilho;
     
     switch (widget.mode) {
@@ -231,45 +249,99 @@ class _ClienteModalState extends State<ClienteModal> {
         modoFilho = EnderecoModalMode.view;
         break;
       case ClienteModalMode.edit:
-        // Se já temos um ID, editamos. Se não, criamos.
         modoFilho = (_tempEnderecoId == null) ? EnderecoModalMode.create : EnderecoModalMode.edit;
         break;
       case ClienteModalMode.create:
-        // Se estamos a criar um cliente, também estamos a criar um endereço
         modoFilho = EnderecoModalMode.create;
         break;
       default:
-        return; // Não abre o modal de endereço se estiver a apagar
+        return; 
     }
 
-    // TODO: Buscar o 'Endereco' real do provider usando _tempEnderecoId
-    // Por agora, vamos simular (como na tua sugestão)
-    Endereco? enderecoAtual = (_tempEnderecoId != null)
-      ? Endereco(
-          id: _tempEnderecoId,
-          logradouro: "Rua Fictícia (Buscada)",
-          cep: "12345-678",
-          cidade: "Cidade Fictícia",
-          estado: "SP",
-          pais: "Brasil"
-        )
-      : null;
+    Endereco? enderecoAtual;
+    if (_tempEnderecoId != null) {
+      setState(() { _isClienteModalLoading = true; });
+      try {
+        // 5. USA O PROVIDER DO 'widget' EM VEZ DE context.read
+        enderecoAtual = await widget.enderecosProvider.buscarEndereco(_tempEnderecoId!);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Erro ao buscar endereço: $e'),
+          backgroundColor: Colors.red,
+        ));
+        setState(() { _isClienteModalLoading = false; });
+        return; 
+      }
+      setState(() { _isClienteModalLoading = false; });
+    }
 
-    // Chama o Modal Filho (Pilha de Diálogos) e ESPERA (await) pelo resultado (o ID)
     final novoEnderecoId = await showDialog<int>(
       context: context,
       barrierDismissible: false,
+      useRootNavigator: false, // Mantém isto
       builder: (ctx) => EnderecoModal(
         mode: modoFilho,
         endereco: enderecoAtual,
+        enderecosProvider: widget.enderecosProvider, 
       ),
     );
 
-    // 7. ATUALIZA O ESTADO quando o modal filho fechar
     if (novoEnderecoId != null) {
       setState(() {
         _tempEnderecoId = novoEnderecoId;
       });
+    }
+  }
+
+  Future<void> _submitClienteForm(VoidCallback onSuccess) async {
+    if (_tempEnderecoId == null) {
+       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Erro: Endereço é obrigatório.'), 
+          backgroundColor: Colors.red));
+       return;
+    }
+    
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() { _isClienteModalLoading = true; });
+      
+      final data = {
+        'razao_social': _razaoSocialController.text,
+        'cnpj': _cnpjController.text,
+        'email': _emailController.text,
+        'telefone': _telefoneController.text.isEmpty ? null : _telefoneController.text,
+        'setor': _setorController.text.isEmpty ? null : _setorController.text,
+        'contato': _contatoController.text.isEmpty ? null : _contatoController.text,
+        'endereco_id': _tempEnderecoId,
+      };
+
+      try {
+        if (widget.mode == ClienteModalMode.edit) {
+          await context.read<ClientesProvider>().atualizarCliente(widget.cliente!.id!, data);
+        } else {
+          await context.read<ClientesProvider>().criarCliente(data);
+        }
+        onSuccess(); 
+      } catch (e) {
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Erro ao salvar cliente: $e'), 
+            backgroundColor: Colors.red));
+      } finally {
+         setState(() { _isClienteModalLoading = false; });
+      }
+    }
+  }
+  
+  Future<void> _deleteCliente(VoidCallback onSuccess) async {
+    setState(() { _isClienteModalLoading = true; });
+    try {
+      await context.read<ClientesProvider>().excluirCliente(widget.cliente!.id!);
+      onSuccess();
+    } catch (e) {
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Erro ao excluir cliente: $e'), 
+            backgroundColor: Colors.red));
+    } finally {
+      setState(() { _isClienteModalLoading = false; });
     }
   }
 
@@ -291,66 +363,23 @@ class _ClienteModalState extends State<ClienteModal> {
     Color actionColor;
     VoidCallback? actionCallback;
 
+    final onSuccess = () => Navigator.pop(context);
+
     switch (widget.mode) {
       case ClienteModalMode.edit:
         actionText = 'Salvar Alterações';
         actionColor = Theme.of(context).primaryColor;
-        actionCallback = () async {
-          // 8. VALIDA se o ID do endereço foi preenchido
-          if (_tempEnderecoId == null) {
-             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text('Erro: Endereço é obrigatório.'), 
-                backgroundColor: Colors.red));
-             return;
-          }
-          if (_formKey.currentState?.validate() ?? false) {
-            final data = {
-              'razao_social': _razaoSocialController.text,
-              'cnpj': _cnpjController.text,
-              'email': _emailController.text,
-              'telefone': _telefoneController.text.isEmpty ? null : _telefoneController.text,
-              'setor': _setorController.text.isEmpty ? null : _setorController.text,
-              'contato': _contatoController.text.isEmpty ? null : _contatoController.text,
-              'endereco_id': _tempEnderecoId, // <-- USA A VARIÁVEL DE ESTADO
-            };
-            await context.read<ClientesProvider>().atualizarCliente(widget.cliente!.id!, data);
-            Navigator.pop(context);
-          }
-        };
+        actionCallback = () => _submitClienteForm(onSuccess);
         break;
       case ClienteModalMode.delete:
         actionText = 'Excluir';
         actionColor = Colors.red;
-        actionCallback = () async {
-          await context.read<ClientesProvider>().excluirCliente(widget.cliente!.id!);
-          Navigator.pop(context);
-        };
+        actionCallback = () => _deleteCliente(onSuccess);
         break;
       case ClienteModalMode.create:
         actionText = 'Criar Cliente';
         actionColor = Colors.green;
-        actionCallback = () async {
-          // 8. VALIDA se o ID do endereço foi preenchido
-          if (_tempEnderecoId == null) {
-             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text('Erro: Endereço é obrigatório.'), 
-                backgroundColor: Colors.red));
-             return;
-          }
-          if (_formKey.currentState?.validate() ?? false) {
-            final data = {
-              'razao_social': _razaoSocialController.text,
-              'cnpj': _cnpjController.text,
-              'email': _emailController.text,
-              'telefone': _telefoneController.text.isEmpty ? null : _telefoneController.text,
-              'setor': _setorController.text.isEmpty ? null : _setorController.text,
-              'contato': _contatoController.text.isEmpty ? null : _contatoController.text,
-              'endereco_id': _tempEnderecoId, // <-- USA A VARIÁVEL DE ESTADO
-            };
-            await context.read<ClientesProvider>().criarCliente(data);
-            Navigator.pop(context);
-          }
-        };
+        actionCallback = () => _submitClienteForm(onSuccess);
         break;
       case ClienteModalMode.view:
         return const SizedBox.shrink();
@@ -365,7 +394,7 @@ class _ClienteModalState extends State<ClienteModal> {
         ),
         const SizedBox(width: 8),
         ElevatedButton(
-          onPressed: actionCallback,
+          onPressed: _isClienteModalLoading ? null : actionCallback,
           style: ElevatedButton.styleFrom(
             backgroundColor: actionColor,
             foregroundColor: Colors.white,

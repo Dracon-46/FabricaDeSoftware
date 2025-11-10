@@ -1,13 +1,12 @@
 // --- Ficheiro: lib/widgets/endereco_modal.dart ---
 
+import 'package:fabrica_software_app/providers/endereco_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:fabrica_software_app/models/endereco.dart';
-// (Vamos assumir que terás um EnderecosProvider no futuro)
-// import 'package:provider/provider.dart';
-// import 'package:fabrica_software_app/providers/enderecos_provider.dart';
+// 1. IMPORTAÇÃO DO PROVIDER
 
-// 1. O ENUM (sem 'delete')
+// 2. O ENUM (sem 'delete')
 enum EnderecoModalMode {
   view,
   edit,
@@ -16,11 +15,13 @@ enum EnderecoModalMode {
 
 class EnderecoModal extends StatefulWidget {
   final EnderecoModalMode mode;
-  final Endereco? endereco; // Endereço é opcional
+  final Endereco? endereco;
+  final EnderecosProvider enderecosProvider;
 
   const EnderecoModal({
     super.key,
     required this.mode,
+    required this.enderecosProvider,
     this.endereco,
   });
 
@@ -29,7 +30,7 @@ class EnderecoModal extends StatefulWidget {
 }
 
 class _EnderecoModalState extends State<EnderecoModal> {
-  // 3. Controladores para TODOS os campos do Endereço
+  // 5. Controladores para TODOS os campos do Endereço
   late TextEditingController _logradouroController;
   late TextEditingController _cepController;
   late TextEditingController _numeroController;
@@ -40,24 +41,25 @@ class _EnderecoModalState extends State<EnderecoModal> {
   late TextEditingController _complementoController;
 
   final _formKey = GlobalKey<FormState>();
+  bool _isModalLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // 4. Preenche os controladores (vazios se for 'create')
+    // 6. Preenche os controladores (vazios se for 'create')
     _logradouroController = TextEditingController(text: widget.endereco?.logradouro ?? '');
     _cepController = TextEditingController(text: widget.endereco?.cep ?? '');
     _numeroController = TextEditingController(text: widget.endereco?.numero ?? '');
     _bairroController = TextEditingController(text: widget.endereco?.bairro ?? '');
     _cidadeController = TextEditingController(text: widget.endereco?.cidade ?? '');
     _estadoController = TextEditingController(text: widget.endereco?.estado ?? '');
-    _paisController = TextEditingController(text: widget.endereco?.pais ?? '');
+    _paisController = TextEditingController(text: widget.endereco?.pais ?? 'Brasil'); // Default
     _complementoController = TextEditingController(text: widget.endereco?.complemento ?? '');
   }
 
   @override
   void dispose() {
-    // 5. Limpa TODOS os controladores
+    // 7. Limpa TODOS os controladores
     _logradouroController.dispose();
     _cepController.dispose();
     _numeroController.dispose();
@@ -68,6 +70,54 @@ class _EnderecoModalState extends State<EnderecoModal> {
     _complementoController.dispose();
     super.dispose();
   }
+  
+  // 8. FUNÇÃO DE SUBMISSÃO ATUALIZADA
+  Future<void> _submitForm() async {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return; // Não faz nada se o formulário for inválido
+    }
+
+    setState(() { _isModalLoading = true; });
+
+    // 9. USA O PROVIDER DO 'widget' EM VEZ DE context.read
+    final provider = widget.enderecosProvider;
+
+    // Prepara os dados do formulário
+    final data = {
+      'logradouro': _logradouroController.text,
+      'cep': _cepController.text,
+      'numero': _numeroController.text.isEmpty ? null : _numeroController.text,
+      'bairro': _bairroController.text.isEmpty ? null : _bairroController.text,
+      'cidade': _cidadeController.text,
+      'estado': _estadoController.text,
+      'pais': _paisController.text,
+      'complemento': _complementoController.text.isEmpty ? null : _complementoController.text,
+    };
+
+    try {
+      if (widget.mode == EnderecoModalMode.edit) {
+        // --- LÓGICA DE ATUALIZAR ---
+        final enderecoAtualizado = await provider.atualizarEndereco(widget.endereco!.id!, data);
+        // Devolve o ID para o Modal Pai
+        Navigator.pop(context, enderecoAtualizado.id);
+
+      } else if (widget.mode == EnderecoModalMode.create) {
+        // --- LÓGICA DE CRIAR ---
+        final novoEndereco = await provider.criarEndereco(data);
+        // Devolve o NOVO ID para o Modal Pai
+        Navigator.pop(context, novoEndereco.id);
+      }
+    } catch (e) {
+      // Mostra erro se a API falhar
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Erro ao salvar endereço: $e'),
+        backgroundColor: Colors.red,
+      ));
+    } finally {
+      setState(() { _isModalLoading = false; });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +190,13 @@ class _EnderecoModalState extends State<EnderecoModal> {
   }
 
   Widget _buildBody(BuildContext context) {
+    if (_isModalLoading) {
+      return const Center(child: Padding(
+        padding: EdgeInsets.all(32.0),
+        child: CircularProgressIndicator(),
+      ));
+    }
+    
     switch (widget.mode) {
       case EnderecoModalMode.view:
         return Column(
@@ -188,59 +245,16 @@ class _EnderecoModalState extends State<EnderecoModal> {
 
     String actionText;
     Color actionColor;
-    VoidCallback? actionCallback;
+    VoidCallback? actionCallback = _submitForm; // 10. CHAMA A FUNÇÃO DE SUBMISSÃO
 
     switch (widget.mode) {
       case EnderecoModalMode.edit:
         actionText = 'Salvar Alterações';
         actionColor = Theme.of(context).primaryColor;
-        actionCallback = () { // (Falta async)
-          if (_formKey.currentState?.validate() ?? false) {
-            final data = {
-              'logradouro': _logradouroController.text,
-              'cep': _cepController.text,
-              'numero': _numeroController.text.isEmpty ? null : _numeroController.text,
-              'bairro': _bairroController.text.isEmpty ? null : _bairroController.text,
-              'cidade': _cidadeController.text,
-              'estado': _estadoController.text,
-              'pais': _paisController.text,
-              'complemento': _complementoController.text.isEmpty ? null : _complementoController.text,
-            };
-            // TODO: Chamar o EnderecosProvider para ATUALIZAR
-            // await context.read<EnderecosProvider>().atualizarEndereco(widget.endereco!.id!, data);
-            print("Lógica de Atualizar Endereço: $data");
-            
-            // DEVOLVE O ID DO ENDEREÇO PARA O MODAL PAI
-            Navigator.pop(context, widget.endereco!.id); 
-          }
-        };
         break;
       case EnderecoModalMode.create:
         actionText = 'Criar Endereço';
         actionColor = Colors.green;
-        actionCallback = () { // (Falta async)
-          if (_formKey.currentState?.validate() ?? false) {
-            final data = {
-              'logradouro': _logradouroController.text,
-              'cep': _cepController.text,
-              'numero': _numeroController.text.isEmpty ? null : _numeroController.text,
-              'bairro': _bairroController.text.isEmpty ? null : _bairroController.text,
-              'cidade': _cidadeController.text,
-              'estado': _estadoController.text,
-              'pais': _paisController.text,
-              'complemento': _complementoController.text.isEmpty ? null : _complementoController.text,
-            };
-            // TODO: Chamar o EnderecosProvider para CRIAR
-            // final novoEndereco = await context.read<EnderecosProvider>().criarEndereco(data);
-            print("Lógica de Criar Endereço: $data");
-            
-            // Simula um novo ID
-            final int novoIdSimulado = 2; 
-            
-            // DEVOLVE O NOVO ID PARA O MODAL PAI
-            Navigator.pop(context, novoIdSimulado); 
-          }
-        };
         break;
       default:
         return const SizedBox.shrink();
@@ -255,7 +269,7 @@ class _EnderecoModalState extends State<EnderecoModal> {
         ),
         const SizedBox(width: 8),
         ElevatedButton(
-          onPressed: actionCallback,
+          onPressed: _isModalLoading ? null : actionCallback,
           style: ElevatedButton.styleFrom(
             backgroundColor: actionColor,
             foregroundColor: Colors.white,
