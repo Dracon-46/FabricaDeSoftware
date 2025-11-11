@@ -1,8 +1,11 @@
+import 'package:fabrica_software_app/models/recurso.dart';
 import 'package:fabrica_software_app/providers/menu_provider.dart';
+import 'package:fabrica_software_app/providers/recursos_provider.dart';
 import 'package:fabrica_software_app/screens/Api_teste/Teste.dart';
 import 'package:fabrica_software_app/screens/Cadastro/Cadastro_screen.dart';
 import 'package:fabrica_software_app/screens/Account/Account.dart';
 import 'package:fabrica_software_app/screens/Clientes/Clientes.dart';
+import 'package:fabrica_software_app/screens/Recursos/Recursos.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/usuarios_provider.dart';
@@ -20,6 +23,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => UsuariosProvider()),
         ChangeNotifierProvider(create: (_) => ProjetosProvider()),
+        ChangeNotifierProvider(create: (_) { return RecursosProvider();}),
         ChangeNotifierProvider(create: (_) { return ClientesProvider();}),
       ],  
       child: MyApp(),
@@ -41,7 +45,8 @@ class MyApp extends StatelessWidget {
           '/Gerenciar_Projetos':(context){return const GerenciarProjetos();},
           '/Teste':(context){return const Teste();},
           '/Account':(context){return const Account();},
-          '/Clientes':(context){return const Clientes();}
+          '/Clientes':(context){return const Clientes();},
+          '/Recursos':(context){return const Recursos();}
         },
         title: 'Fábrica de Software',
         theme: ThemeData(

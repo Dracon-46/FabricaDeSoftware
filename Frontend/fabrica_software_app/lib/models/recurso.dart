@@ -18,8 +18,18 @@ class Recurso {
   });
 
   factory Recurso.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter de String/int para int?
+    int? _parseInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     return Recurso(
-      id: json['id'],
+      // CORREÇÃO: Usamos o _parseInt para converter com segurança
+      id: _parseInt(json['id']),
+      
       nome: json['nome'],
       tipo: json['tipo'],
       disponivel: json['disponivel'] ?? true,
@@ -27,7 +37,9 @@ class Recurso {
       dataCriacao: json['data_criacao'] != null 
           ? DateTime.parse(json['data_criacao']) 
           : null,
-      criadoPorId: json['criado_por_id'],
+          
+      // CORREÇÃO: Usamos o _parseInt aqui também
+      criadoPorId: _parseInt(json['criado_por_id']),
     );
   }
 
@@ -38,7 +50,7 @@ class Recurso {
       'tipo': tipo,
       'disponivel': disponivel,
       'descricao': descricao,
-      'data_criacao': dataCriacao?.toIso8601String(),
+      // data_criacao é gerenciada pelo banco
       'criado_por_id': criadoPorId,
     };
   }
