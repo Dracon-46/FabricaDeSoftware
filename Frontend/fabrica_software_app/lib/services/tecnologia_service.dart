@@ -1,26 +1,29 @@
 import '../models/tecnologia.dart';
 import 'base_api_service.dart';
 
-class TecnologiaService extends BaseApiService {
-  TecnologiaService() : super('/tecnologias');
+// Service no padrão do seu 'projetos_service.dart'
+class TecnologiasService extends BaseApiService {
+  static final TecnologiasService instance = TecnologiasService._();
+  
+  TecnologiasService._() : super('/tecnologias');
 
-  Future<List<Tecnologia>> getTecnologias() async {
-    return getAll<Tecnologia>(Tecnologia.fromJson);
+  Future<List<Tecnologia>> listarTecnologias() async {
+    return super.getAll((json) => Tecnologia.fromJson(json));
   }
 
-  Future<Tecnologia> getTecnologia(int id) async {
-    return getById<Tecnologia>(id, Tecnologia.fromJson);
+  Future<Tecnologia> buscarTecnologia(int id) async {
+    return super.getById(id, (json) => Tecnologia.fromJson(json));
   }
 
-  Future<Tecnologia> createTecnologia(Tecnologia tecnologia) async {
-    return create<Tecnologia>(tecnologia.toJson(), Tecnologia.fromJson);
+  Future<Tecnologia> criarTecnologia(Map<String, dynamic> data) async {
+    return super.create(data, (json) => Tecnologia.fromJson(json));
   }
 
-  Future<Tecnologia> updateTecnologia(Tecnologia tecnologia) async {
-    return update<Tecnologia>(tecnologia.id ?? 0, tecnologia.toJson(), Tecnologia.fromJson);
+  Future<Tecnologia> atualizarTecnologia(int id, Map<String, dynamic> data) async {
+    return super.update(id, data, (json) => Tecnologia.fromJson(json));
   }
 
-  Future<void> deleteTecnologia(int id) async {
-    return delete(id);
+  Future<void> excluirTecnologia(int id) async {
+    return super.delete(id);
   }
 }
