@@ -47,7 +47,6 @@ class _ClienteModalState extends State<ClienteModal> {
   
   bool _isClienteModalLoading = false;
 
-  bool get _isEditing => widget.mode == ClienteModalMode.edit;
 
 
   @override

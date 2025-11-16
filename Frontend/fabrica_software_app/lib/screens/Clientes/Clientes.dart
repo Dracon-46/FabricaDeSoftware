@@ -3,11 +3,9 @@ import 'package:fabrica_software_app/Widgets/Barra_lateral/Barra_Lateral.dart';
 import 'package:fabrica_software_app/models/cliente.dart';
 import 'package:fabrica_software_app/providers/clientes_provider.dart';
 import 'package:fabrica_software_app/providers/endereco_provider.dart';
-// 1. IMPORTAÇÃO DO ENDERECOS PROVIDER
 import 'package:fabrica_software_app/screens/Clientes/components/ClienteRow.dart';
 import 'package:fabrica_software_app/screens/Clientes/components/Cliente_modal.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 class Clientes extends StatefulWidget {

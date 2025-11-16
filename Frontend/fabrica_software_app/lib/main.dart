@@ -1,4 +1,3 @@
-import 'package:fabrica_software_app/providers/menu_provider.dart';
 import 'package:fabrica_software_app/screens/Api_teste/Teste.dart';
 import 'package:fabrica_software_app/screens/Cadastro/Cadastro_screen.dart';
 import 'package:fabrica_software_app/screens/Account/Account.dart';
@@ -13,7 +12,19 @@ import 'screens/Api_teste/api_test_screen.dart';
 import 'screens/Login/login_screen.dart';
 import 'screens/Gerenciar_Projetos/Gerenciar_projetos.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+void main() async { 
+  
+  // --- MUDANÇA 2: Garanta que o Flutter está pronto
+  WidgetsFlutterBinding.ensureInitialized(); 
+
+  // --- MUDANÇA 3: Inicialize o Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Seu código original
   runApp(
     MultiProvider(
       providers:[
@@ -21,6 +32,9 @@ void main() {
         ChangeNotifierProvider(create: (_) => UsuariosProvider()),
         ChangeNotifierProvider(create: (_) => ProjetosProvider()),
         ChangeNotifierProvider(create: (_) { return ClientesProvider();}),
+        // Você mencionou 'menu_provider' no import, mas não usou aqui.
+        // Se precisar, adicione-o:
+        // ChangeNotifierProvider(create: (_) => MenuProvider()),
       ],  
       child: MyApp(),
     )

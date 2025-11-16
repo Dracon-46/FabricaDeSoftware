@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+require('dotenv').config(); 
 const authController = require("./controllers/auth/authController.js");
 const usuariosController = require("./controllers/usuarios/usuariosController.js");
 const projetosController = require("./controllers/projetos/projetosController.js");
@@ -29,6 +30,7 @@ app.use(express.json());
 // Rotas de autenticação
 app.post("/api/auth/login", authController.login);
 app.post("/api/auth/refresh", authController.refresh);
+app.post("/api/auth/google-login", authController.googleLogin); // Esta é a linha nova
 
 // Middleware de autenticação para rotas protegidas
 const authenticateToken = authController.authenticateToken;
