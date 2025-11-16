@@ -1,0 +1,3 @@
+# Chaves de serviço e segredos
+.env
+serviceAccountKey.json
