@@ -1,5 +1,4 @@
 import 'package:fabrica_software_app/models/recurso.dart';
-import 'package:fabrica_software_app/providers/menu_provider.dart';
 import 'package:fabrica_software_app/providers/recursos_provider.dart';
 import 'package:fabrica_software_app/providers/tecnologias_provider.dart';
 import 'package:fabrica_software_app/screens/Api_teste/Teste.dart';
@@ -24,15 +23,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 void main() async { 
   
-  // --- MUDANÇA 2: Garanta que o Flutter está pronto
   WidgetsFlutterBinding.ensureInitialized(); 
 
-  // --- MUDANÇA 3: Inicialize o Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Seu código original
   runApp(
     MultiProvider(
       providers:[
