@@ -1,5 +1,4 @@
 import 'package:fabrica_software_app/models/recurso.dart';
-import 'package:fabrica_software_app/providers/menu_provider.dart';
 import 'package:fabrica_software_app/providers/recursos_provider.dart';
 import 'package:fabrica_software_app/providers/tecnologias_provider.dart';
 import 'package:fabrica_software_app/screens/Api_teste/Teste.dart';
