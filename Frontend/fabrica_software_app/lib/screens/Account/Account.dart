@@ -3,7 +3,6 @@ import 'package:fabrica_software_app/Widgets/Barra_lateral/Barra_Lateral.dart';
 import 'package:fabrica_software_app/Widgets/Nivel_icon/Nivel_icon.dart';
 import 'package:fabrica_software_app/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; 
 import 'package:provider/provider.dart';
 
 

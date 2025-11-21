@@ -20,7 +20,19 @@ import 'screens/Api_teste/api_test_screen.dart';
 import 'screens/Login/login_screen.dart';
 import 'screens/Gerenciar_Projetos/Gerenciar_projetos.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+void main() async { 
+  
+  // --- MUDANÇA 2: Garanta que o Flutter está pronto
+  WidgetsFlutterBinding.ensureInitialized(); 
+
+  // --- MUDANÇA 3: Inicialize o Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Seu código original
   runApp(
     MultiProvider(
       providers:[

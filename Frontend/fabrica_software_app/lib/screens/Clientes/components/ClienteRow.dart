@@ -11,16 +11,16 @@ class ClienteRow extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
-  const ClienteRow(
-    {super.key,
+  const ClienteRow({
+    super.key,
     required this.CNPJ,
     required this.contato,
     required this.razaoSocial,
     required this.setor,
     this.onView,
     this.onEdit,
-    this.onDelete,}
-    );
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,50 +30,89 @@ class ClienteRow extends StatelessWidget {
           bottom: BorderSide(color: Colors.grey[200]!, width: 1.0),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          
+          // FLEX 3: Razão Social (Avatar + Texto)
           Expanded(
             flex: 3,
             child: Row(
               children: [
-                // 'avatar'
                 CircleAvatar(
                   radius: 16,
                   backgroundColor: Colors.blue.withOpacity(0.1),
-                  child: Text('${pegarIniciais(razaoSocial)}', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12)),
+                  child: Text(
+                    pegarIniciais(razaoSocial),
+                    style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
                 ),
                 const SizedBox(width: 12),
-                // 'nome'
-                Expanded(child: Text('$razaoSocial', style: TextStyle(fontWeight: FontWeight.w500))),
+                Expanded(
+                  child: Text(
+                    razaoSocial, 
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
           ),
-          // 'cnpj'
-          Expanded(flex: 2, child: Text('$CNPJ')),
-          // 'setor'
+          
+          // FLEX 2: CNPJ
           Expanded(
-            flex: 1,
-            child: Chip(
-              label: Text('$setor', style: TextStyle(fontSize: 12, color: Colors.blue.shade900)),
-              backgroundColor: const Color.fromARGB(255, 51, 243, 33).withOpacity(0.1),
-              side: BorderSide.none,
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            flex: 2, 
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(CNPJ, overflow: TextOverflow.ellipsis),
             ),
           ),
-          // 'contato'
-          Expanded(flex: 2, child: Text('$contato')),
-          // 'projeto'
-          Expanded(flex: 1, child: Text('1 Projeto(s)')),
-          // 'acoes'
+          
+          // FLEX 1: Setor (Badge Centralizado)
+          Expanded(
+            flex: 1,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 51, 243, 33).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  setor, 
+                  style: TextStyle(fontSize: 12, color: Colors.blue.shade900, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
+          ),
+          
+          // FLEX 2: Contato (Com padding leve na esquerda)
+          Expanded(
+            flex: 2, 
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Text(contato, overflow: TextOverflow.ellipsis),
+            ),
+          ),
+          
+          // FLEX 1: Projetos (Centralizado)
+          const Expanded(
+            flex: 1, 
+            child: Center(child: Text('1 Projeto(s)')),
+          ),
+          
+          // FLEX 1: Ações (Alinhado à Direita)
           Expanded(
             flex: 1,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.end, // Empurra para a direita
               children: [
-                IconButton(icon: FaIcon(FontAwesomeIcons.solidEye), onPressed: onView, tooltip: 'Ver', iconSize: 20),
-                IconButton(icon: FaIcon(FontAwesomeIcons.solidPenToSquare), onPressed: onEdit, tooltip: 'Editar', iconSize: 20),
-                IconButton(icon: FaIcon(FontAwesomeIcons.trash, color: Colors.red), onPressed: onDelete, tooltip: 'Excluir', iconSize: 20),
+                _ActionButton(icon: FontAwesomeIcons.solidEye, onTap: onView, color: Colors.black54),
+                const SizedBox(width: 8),
+                _ActionButton(icon: FontAwesomeIcons.solidPenToSquare, onTap: onEdit, color: Colors.black54),
+                const SizedBox(width: 8),
+                _ActionButton(icon: FontAwesomeIcons.trash, onTap: onDelete, color: Colors.red),
               ],
             ),
           ),
@@ -83,17 +122,35 @@ class ClienteRow extends StatelessWidget {
   }
 
   String pegarIniciais(String nome) {
-  nome = nome.trim();
-
-  var partes = nome.split(RegExp(r'\s+'));
-
-  if (partes.length == 1) {
-    return partes[0][0].toUpperCase();
+    if (nome.isEmpty) return "?";
+    nome = nome.trim();
+    var partes = nome.split(RegExp(r'\s+'));
+    if (partes.length == 1) {
+      return partes[0][0].toUpperCase();
+    }
+    String primeira = partes.first[0].toUpperCase();
+    String ultima = partes.last[0].toUpperCase();
+    return '$primeira$ultima';
   }
-
-  String primeira = partes.first[0].toUpperCase();
-  String ultima = partes.last[0].toUpperCase();
-
-  return '$primeira$ultima';
 }
+
+// Componente auxiliar para padronizar os botões de ação
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  final Color color;
+
+  const _ActionButton({required this.icon, this.onTap, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(50),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: FaIcon(icon, size: 18, color: color), // Ícone levemente menor (18)
+      ),
+    );
+  }
 }

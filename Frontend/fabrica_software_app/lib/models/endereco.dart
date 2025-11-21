@@ -23,7 +23,8 @@ class Endereco {
 
   factory Endereco.fromJson(Map<String, dynamic> json) {
     return Endereco(
-      id: json['id'],
+      // --- CORREÇÃO (Igual ao bug do Cliente) ---
+      id: json['id'] == null ? null : int.parse(json['id'].toString()),
       logradouro: json['logradouro'],
       cep: json['cep'],
       numero: json['numero'],

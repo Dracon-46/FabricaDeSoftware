@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "145870218731",
+    "project_id": "fabrica-de-software-de220",
+    "storage_bucket": "fabrica-de-software-de220.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:145870218731:android:570fec74dacffcdc39e5ae",
+        "android_client_info": {
+          "package_name": "com.seunome.fabrica_software_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "145870218731-k8agqtscnot9lmqk509v87sc6k68u9fa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0GykyiMxLSdQAwAFKvVa52xX3qwAjgjk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "145870218731-k8agqtscnot9lmqk509v87sc6k68u9fa.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

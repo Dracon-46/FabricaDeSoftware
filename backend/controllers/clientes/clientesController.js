@@ -63,21 +63,62 @@ exports.update = async (req, res) => {
   }
 };
 
-// Deletar cliente
 exports.delete = async (req, res) => {
+  const { id } = req.params;
+  const client = await pool.connect(); // Conecta ao pool para usar a transação
+
   try {
-    const { id } = req.params;
-    const result = await pool.query("DELETE FROM clientes WHERE id = $1 RETURNING *", [id]);
-    if (result.rows.length === 0) {
+    await client.query('BEGIN'); // 1. Inicia a transação
+
+    // 2. Pega o ID do endereço ANTES de deletar o cliente
+    const enderecoResult = await client.query(
+      "SELECT endereco_id FROM clientes WHERE id = $1",
+      [id]
+    );
+
+    // Se o cliente não existir, o enderecoResult estará vazio
+    if (enderecoResult.rows.length === 0) {
+      // Importante: Damos rollback antes de sair
+      await client.query('ROLLBACK');
+      // Usamos 'return' para parar a execução aqui
       return res.status(404).json({ message: "Cliente não encontrado" });
     }
-    res.json({ message: "Cliente deletado com sucesso" });
+    
+    const { endereco_id } = enderecoResult.rows[0];
+
+    // 3. Deleta o cliente
+    // (Removido RETURNING * pois não é necessário e já verificamos se existe)
+    await client.query(
+      "DELETE FROM clientes WHERE id = $1", 
+      [id]
+    );
+
+    // 4. Deleta o endereço associado
+    // Só deleta o endereço se ele existir (endereco_id não for nulo)
+    if (endereco_id) {
+      await client.query(
+        "DELETE FROM enderecos WHERE id = $1", 
+        [endereco_id]
+      );
+    }
+
+    // 5. Se tudo deu certo, comita as mudanças
+    await client.query('COMMIT'); 
+
+    res.json({ message: "Cliente e endereço associado deletados com sucesso" });
+
   } catch (error) {
+    // 6. Se algo deu errado (ex: erro de banco), desfaz tudo
+    await client.query('ROLLBACK');
     res.status(500).json({ error: error.message });
+
+  } finally {
+    // 7. Libera a conexão de volta para o pool
+    client.release();
   }
 };
 
-// Buscar detalhes completos do cliente (Esta função estava a faltar no teu ficheiro original)
+
 exports.details = async (req, res) => {
   try {
     const { id } = req.params;
