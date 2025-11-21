@@ -28,16 +28,10 @@ class _ClientesState extends State<Clientes> {
   Widget build(BuildContext context) {
     final clientesProvider = context.watch<ClientesProvider>();
 
-    // 2. REGISTA O PROVIDER DE ENDEREÇOS
     return ChangeNotifierProvider(
       create: (_) => EnderecosProvider(),
-      
-      // 3. USA UM BUILDER PARA OBTER UM CONTEXTO VÁLIDO
       child: Builder(
         builder: (scaffoldContext) {
-          // Este 'scaffoldContext' pode ver o EnderecosProvider
-
-          // 4. LÊ A INSTÂNCIA DO PROVIDER AQUI
           final enderecosProvider = scaffoldContext.read<EnderecosProvider>();
 
           return Scaffold(
@@ -46,18 +40,20 @@ class _ClientesState extends State<Clientes> {
             appBar: CustomAppBar(
               title: 'Gestão de Clientes',
               listaActions: [
-                ElevatedButton.icon(
-                  // 5. PASSA O CONTEXTO E A INSTÂNCIA DO PROVIDER
-                  onPressed: () => _abrirModalCriarCliente(scaffoldContext, enderecosProvider), 
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Novo Cliente'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pink, // Cor rosa/magenta
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 20.0),
+                 child: ElevatedButton.icon(
+                        onPressed: () => _abrirModalCriarCliente(scaffoldContext, enderecosProvider), 
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Novo Cliente'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.pink, 
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
                 ),
               ],
             ),
@@ -71,8 +67,9 @@ class _ClientesState extends State<Clientes> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 34),
-                        //Filter place here
+                        // Filtros viriam aqui
                         const SizedBox(height: 24),
+                        
                         Card(
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -84,6 +81,7 @@ class _ClientesState extends State<Clientes> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Título da Tabela
                               Padding(
                                 padding: const EdgeInsets.all(20.0),
                                 child: Row(
@@ -94,40 +92,62 @@ class _ClientesState extends State<Clientes> {
                                       style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      '24 clientes encontrados',
+                                      '${clientesProvider.clientes?.length ?? 0} clientes encontrados',
                                       style: const TextStyle(color: Colors.grey),
                                     ),
                                   ],
                                 ),
                               ),
+
+                              // --- CABEÇALHO DA TABELA (HEADER) ---
                               Container(
                                 width: double.infinity,
                                 color: Colors.grey[50],
+                                // Padding horizontal igual ao da Linha (20)
                                 padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-                                // --- INÍCIO: Conteúdo de _buildClientRow (Header) ---
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    border: null, 
-                                  ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        flex: 3,
-                                        child:
-                                            Expanded(child: Text('Razão Social', style: TextStyle(fontWeight: FontWeight.bold))), // 'nome'
+                                child: Row(
+                                  children: const [
+                                    // Flex 3: Razão Social
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text('Razão Social', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                    // Flex 2: CNPJ
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text('CNPJ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                    // Flex 1: Setor (Centralizado)
+                                    Expanded(
+                                      flex: 1,
+                                      child: Center(child: Text('Setor', style: TextStyle(fontWeight: FontWeight.bold))),
+                                    ),
+                                    // Flex 2: Contato (Padding leve na esquerda para alinhar com texto)
+                                    Expanded(
+                                      flex: 2,
+                                      child: Padding(
+                                        padding: EdgeInsets.only(left: 8.0),
+                                        child: Text('Contato', style: TextStyle(fontWeight: FontWeight.bold)),
                                       ),
-                                      Expanded(flex: 2, child: Text('CNPJ', style: TextStyle(fontWeight: FontWeight.bold))), // 'cnpj'
-                                      Expanded(flex: 1, child: Text('Setor', style: TextStyle(fontWeight: FontWeight.bold))), // 'setor'
-                                      Expanded(flex: 2, child: Text('Contato', style: TextStyle(fontWeight: FontWeight.bold))), // 'contato'
-                                      Expanded(flex: 1, child: Text('Projeto(s)', style: TextStyle(fontWeight: FontWeight.bold))), // 'projeto'
-                                      Expanded(flex: 1, child: Text('Ações', style: TextStyle(fontWeight: FontWeight.bold))), // 'acoes'
-                                    ],
-                                  ),
+                                    ),
+                                    // Flex 1: Projetos (Centralizado)
+                                    Expanded(
+                                      flex: 1,
+                                      child: Center(child: Text('Projeto(s)', style: TextStyle(fontWeight: FontWeight.bold))),
+                                    ),
+                                    // Flex 1: Ações (Alinhado à Direita)
+                                    Expanded(
+                                      flex: 1,
+                                      child: Align(
+                                        alignment: Alignment.centerRight,
+                                        child: Text('Ações', style: TextStyle(fontWeight: FontWeight.bold)),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                // --- FIM: Conteúdo de _buildClientRow (Header) ---
                               ),
+
+                              // --- LISTA DE DADOS ---
                               if (clientesProvider.isLoading)
                                 const Center(
                                   child: Padding(
@@ -157,18 +177,15 @@ class _ClientesState extends State<Clientes> {
                                       CNPJ: cliente.cnpj,
                                       setor:'${cliente.setor}' ,
                                       contato: cliente.email,
-                                      // 6. PASSA O CONTEXTO E A INSTÂNCIA DO PROVIDER
                                       onView: () => _abrirModalCliente(scaffoldContext, cliente, ClienteModalMode.view, enderecosProvider),
                                       onEdit: () => _abrirModalCliente(scaffoldContext, cliente, ClienteModalMode.edit, enderecosProvider),
                                       onDelete: () => _abrirModalCliente(scaffoldContext, cliente, ClienteModalMode.delete, enderecosProvider),
                                     );
                                   }).toList(),
                                 ),
-
                             ],
                           ),
                         ),
-
                       ],
                     ),
                   ),
@@ -182,29 +199,27 @@ class _ClientesState extends State<Clientes> {
   }
 }
 
-// 7. ATUALIZA A FUNÇÃO PARA RECEBER O PROVIDER
 void _abrirModalCliente(BuildContext context, Cliente cliente, ClienteModalMode modo, EnderecosProvider provider) {
   showDialog(
     context: context,
     barrierDismissible: false,
-    useRootNavigator: false, // Mantém isto
+    useRootNavigator: false,
     builder: (ctx) => ClienteModal(
       mode: modo,
       cliente: cliente,
-      enderecosProvider: provider, // 8. PASSA O PROVIDER PARA O MODAL
+      enderecosProvider: provider,
     ),
   );
 }
 
-// 7. ATUALIZA A FUNÇÃO PARA RECEBER O PROVIDER
 void _abrirModalCriarCliente(BuildContext context, EnderecosProvider provider) {
   showDialog(
     context: context,
     barrierDismissible: false, 
-    useRootNavigator: false, // Mantém isto
-    builder: (ctx) => ClienteModal( // Remove o 'const'
+    useRootNavigator: false,
+    builder: (ctx) => ClienteModal(
       mode: ClienteModalMode.create,
-      enderecosProvider: provider, // 8. PASSA O PROVIDER PARA O MODAL
+      enderecosProvider: provider,
     ),
   );
 }

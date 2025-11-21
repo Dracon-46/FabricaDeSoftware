@@ -4,9 +4,7 @@ import 'package:fabrica_software_app/providers/endereco_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:fabrica_software_app/models/endereco.dart';
-// 1. IMPORTAÇÃO DO PROVIDER
 
-// 2. O ENUM (sem 'delete')
 enum EnderecoModalMode {
   view,
   edit,
@@ -30,7 +28,6 @@ class EnderecoModal extends StatefulWidget {
 }
 
 class _EnderecoModalState extends State<EnderecoModal> {
-  // 5. Controladores para TODOS os campos do Endereço
   late TextEditingController _logradouroController;
   late TextEditingController _cepController;
   late TextEditingController _numeroController;
@@ -43,23 +40,37 @@ class _EnderecoModalState extends State<EnderecoModal> {
   final _formKey = GlobalKey<FormState>();
   bool _isModalLoading = false;
 
+  // --- ESTILOS ---
+  
+  final BoxDecoration _inputBoxDecoration = BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(10), 
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.06),
+        blurRadius: 4,
+        spreadRadius: 0,
+        offset: const Offset(0, 2),
+      ),
+    ],
+    border: Border.all(color: const Color.fromARGB(255, 230, 230, 230)),
+  );
+
   @override
   void initState() {
     super.initState();
-    // 6. Preenche os controladores (vazios se for 'create')
     _logradouroController = TextEditingController(text: widget.endereco?.logradouro ?? '');
     _cepController = TextEditingController(text: widget.endereco?.cep ?? '');
     _numeroController = TextEditingController(text: widget.endereco?.numero ?? '');
     _bairroController = TextEditingController(text: widget.endereco?.bairro ?? '');
     _cidadeController = TextEditingController(text: widget.endereco?.cidade ?? '');
     _estadoController = TextEditingController(text: widget.endereco?.estado ?? '');
-    _paisController = TextEditingController(text: widget.endereco?.pais ?? 'Brasil'); // Default
+    _paisController = TextEditingController(text: widget.endereco?.pais ?? 'Brasil');
     _complementoController = TextEditingController(text: widget.endereco?.complemento ?? '');
   }
 
   @override
   void dispose() {
-    // 7. Limpa TODOS os controladores
     _logradouroController.dispose();
     _cepController.dispose();
     _numeroController.dispose();
@@ -71,18 +82,13 @@ class _EnderecoModalState extends State<EnderecoModal> {
     super.dispose();
   }
   
-  // 8. FUNÇÃO DE SUBMISSÃO ATUALIZADA
   Future<void> _submitForm() async {
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return; // Não faz nada se o formulário for inválido
-    }
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() { _isModalLoading = true; });
 
-    // 9. USA O PROVIDER DO 'widget' EM VEZ DE context.read
     final provider = widget.enderecosProvider;
 
-    // Prepara os dados do formulário
     final data = {
       'logradouro': _logradouroController.text,
       'cep': _cepController.text,
@@ -96,48 +102,55 @@ class _EnderecoModalState extends State<EnderecoModal> {
 
     try {
       if (widget.mode == EnderecoModalMode.edit) {
-        // --- LÓGICA DE ATUALIZAR ---
         final enderecoAtualizado = await provider.atualizarEndereco(widget.endereco!.id!, data);
-        // Devolve o ID para o Modal Pai
+        if (!mounted) return;
         Navigator.pop(context, enderecoAtualizado.id);
 
       } else if (widget.mode == EnderecoModalMode.create) {
-        // --- LÓGICA DE CRIAR ---
         final novoEndereco = await provider.criarEndereco(data);
-        // Devolve o NOVO ID para o Modal Pai
+        if (!mounted) return;
         Navigator.pop(context, novoEndereco.id);
       }
     } catch (e) {
-      // Mostra erro se a API falhar
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Erro ao salvar endereço: $e'),
         backgroundColor: Colors.red,
       ));
     } finally {
-      setState(() { _isModalLoading = false; });
+      if (mounted) setState(() { _isModalLoading = false; });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+      insetPadding: const EdgeInsets.all(16),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 600),
+        constraints: const BoxConstraints(maxWidth: 550),
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildHeader(context),
-              const Divider(height: 24),
+              const Divider(height: 24, thickness: 0.5, color: Colors.grey),
               Flexible(
                 child: SingleChildScrollView(
-                  child: _buildBody(context),
+                  child: _isModalLoading
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : _buildBody(context),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildFooter(context),
             ],
           ),
@@ -146,88 +159,225 @@ class _EnderecoModalState extends State<EnderecoModal> {
     );
   }
 
-  // --- Funções Auxiliares ---
-
   Widget _buildHeader(BuildContext context) {
     String title;
     IconData icon;
     Color iconColor;
+    Color bgColorIcon;
 
     switch (widget.mode) {
       case EnderecoModalMode.view:
-        title = 'Detalhes do Endereço';
+        title = 'Endereço';
         icon = FontAwesomeIcons.locationDot;
-        iconColor = Theme.of(context).primaryColor;
+        iconColor = const Color(0xFF2962FF);
+        bgColorIcon = const Color(0xFFE3F2FD);
         break;
       case EnderecoModalMode.edit:
         title = 'Editar Endereço';
         icon = FontAwesomeIcons.mapLocationDot;
         iconColor = Colors.orange;
+        bgColorIcon = Colors.orange.shade50;
         break;
       case EnderecoModalMode.create:
-        title = 'Criar Novo Endereço';
+        title = 'Novo Endereço';
         icon = FontAwesomeIcons.plus;
         iconColor = Colors.green;
+        bgColorIcon = Colors.green.shade50;
         break;
     }
 
     return Row(
       children: [
-        FaIcon(icon, color: iconColor, size: 20),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: bgColorIcon,
+            shape: BoxShape.circle,
+          ),
+          child: FaIcon(icon, color: iconColor, size: 16),
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 18, 
+              fontWeight: FontWeight.w600,
+              color: Colors.black87
+            ),
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context), // Fecha este modal
+          icon: const Icon(Icons.close, color: Colors.black54, size: 20),
+          onPressed: () => Navigator.pop(context),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          splashRadius: 20,
         ),
       ],
     );
   }
 
   Widget _buildBody(BuildContext context) {
-    if (_isModalLoading) {
-      return const Center(child: Padding(
-        padding: EdgeInsets.all(32.0),
-        child: CircularProgressIndicator(),
-      ));
+    String? getText(String? val) => widget.mode == EnderecoModalMode.view ? val : null;
+    TextEditingController? getCtrl(TextEditingController ctrl) => widget.mode != EnderecoModalMode.view ? ctrl : null;
+
+    Widget content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Logradouro (Full)
+        _buildLabelAndField(
+          "Logradouro *", 
+          textValue: getText(widget.endereco?.logradouro),
+          controller: getCtrl(_logradouroController)
+        ),
+
+        // Número + CEP
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start, // Garante alinhamento topo
+          children: [
+            Expanded(
+              flex: 3,
+              child: _buildLabelAndField(
+                "Número", 
+                textValue: getText(widget.endereco?.numero ?? ''),
+                controller: getCtrl(_numeroController),
+                isRequired: false
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 7,
+              child: _buildLabelAndField(
+                "CEP *", 
+                textValue: getText(widget.endereco?.cep),
+                controller: getCtrl(_cepController),
+                isNumeric: true
+              ),
+            ),
+          ],
+        ),
+
+        // Bairro + Complemento
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 1,
+              child: _buildLabelAndField(
+                "Bairro", 
+                textValue: getText(widget.endereco?.bairro ?? ''),
+                controller: getCtrl(_bairroController),
+                isRequired: false
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 1,
+              child: _buildLabelAndField(
+                "Complemento", 
+                textValue: getText(widget.endereco?.complemento ?? ''),
+                controller: getCtrl(_complementoController),
+                isRequired: false
+              ),
+            ),
+          ],
+        ),
+
+        // Cidade + UF + País
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 5,
+              child: _buildLabelAndField(
+                "Cidade *", 
+                textValue: getText(widget.endereco?.cidade),
+                controller: getCtrl(_cidadeController)
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: _buildLabelAndField(
+                "UF *", 
+                textValue: getText(widget.endereco?.estado),
+                controller: getCtrl(_estadoController)
+              ),
+            ),
+            const SizedBox(width: 12),
+             Expanded(
+              flex: 3,
+              child: _buildLabelAndField(
+                "País *", 
+                textValue: getText(widget.endereco?.pais),
+                controller: getCtrl(_paisController)
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    if (widget.mode == EnderecoModalMode.view) {
+      return content;
     }
     
-    switch (widget.mode) {
-      case EnderecoModalMode.view:
-        return Column(
-          children: [
-            _buildReadOnlyField("Logradouro", widget.endereco!.logradouro),
-            _buildReadOnlyField("CEP", widget.endereco!.cep),
-            _buildReadOnlyField("Cidade", widget.endereco!.cidade),
-            _buildReadOnlyField("Estado", widget.endereco!.estado),
-            _buildReadOnlyField("País", widget.endereco!.pais),
-          ],
-        );
-      
-      case EnderecoModalMode.edit:
-      case EnderecoModalMode.create:
-        return Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildEditableField("Logradouro *", _logradouroController),
-              _buildEditableField("CEP *", _cepController),
-              _buildEditableField("Número", _numeroController, isRequired: false),
-              _buildEditableField("Bairro", _bairroController, isRequired: false),
-              _buildEditableField("Cidade *", _cidadeController),
-              _buildEditableField("Estado (ex: SP) *", _estadoController),
-              _buildEditableField("País *", _paisController),
-              _buildEditableField("Complemento", _complementoController, isRequired: false),
-            ],
+    return Form(key: _formKey, child: content);
+  }
+
+  Widget _buildLabelAndField(String label, {String? textValue, TextEditingController? controller, bool isRequired = true, bool isNumeric = false}) {
+    bool isReadOnly = widget.mode == EnderecoModalMode.view;
+    final textController = controller ?? TextEditingController(text: textValue);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[700],
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        );
-    }
+          const SizedBox(height: 6),
+
+          Container(
+            // CORREÇÃO: Removi o height: 42 fixo.
+            // A altura agora é definida pelo padding interno + tamanho da fonte.
+            decoration: _inputBoxDecoration,
+            child: TextFormField(
+              controller: textController,
+              readOnly: isReadOnly,
+              enabled: !isReadOnly,
+              keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+              style: const TextStyle(color: Colors.black87, fontSize: 14),
+              // CORREÇÃO: Ajustei o padding interno para centralizar e dar "respiro"
+              decoration: const InputDecoration(
+                isDense: true, 
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                errorStyle: TextStyle(height: 0, fontSize: 0),
+              ),
+              validator: (value) {
+                if (!isReadOnly && isRequired && (value == null || value.isEmpty)) {
+                  return ''; 
+                }
+                return null;
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildFooter(BuildContext context) {
@@ -235,8 +385,15 @@ class _EnderecoModalState extends State<EnderecoModal> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          ElevatedButton(
+          OutlinedButton(
             onPressed: () => Navigator.pop(context),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.black54,
+              side: const BorderSide(color: Colors.black12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              visualDensity: VisualDensity.compact,
+            ),
             child: const Text('Fechar'),
           ),
         ],
@@ -245,19 +402,20 @@ class _EnderecoModalState extends State<EnderecoModal> {
 
     String actionText;
     Color actionColor;
-    VoidCallback? actionCallback = _submitForm; // 10. CHAMA A FUNÇÃO DE SUBMISSÃO
+    VoidCallback? actionCallback = _submitForm;
 
     switch (widget.mode) {
       case EnderecoModalMode.edit:
-        actionText = 'Salvar Alterações';
+        actionText = 'Salvar';
         actionColor = Theme.of(context).primaryColor;
         break;
       case EnderecoModalMode.create:
-        actionText = 'Criar Endereço';
+        actionText = 'Criar';
         actionColor = Colors.green;
         break;
       default:
-        return const SizedBox.shrink();
+        actionText = '';
+        actionColor = Colors.transparent;
     }
 
     return Row(
@@ -265,7 +423,7 @@ class _EnderecoModalState extends State<EnderecoModal> {
       children: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          child: const Text('Cancelar', style: TextStyle(color: Colors.grey, fontSize: 13)),
         ),
         const SizedBox(width: 8),
         ElevatedButton(
@@ -273,49 +431,13 @@ class _EnderecoModalState extends State<EnderecoModal> {
           style: ElevatedButton.styleFrom(
             backgroundColor: actionColor,
             foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            visualDensity: VisualDensity.compact,
           ),
           child: Text(actionText),
         ),
       ],
-    );
-  }
-
-  Widget _buildReadOnlyField(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextField(
-        controller: TextEditingController(text: value),
-        readOnly: true,
-        decoration: InputDecoration(
-          labelText: label,
-          filled: true,
-          fillColor: Colors.grey[100],
-          border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(8)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEditableField(String label, TextEditingController controller, {bool isRequired = true, bool isNumeric = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
-        validator: (value) {
-          if (isRequired && (value == null || value.isEmpty)) {
-            return 'Este campo é obrigatório';
-          }
-          if (isNumeric && value != null && value.isNotEmpty && int.tryParse(value) == null) {
-            return 'Por favor, insira um número válido';
-          }
-          return null;
-        },
-      ),
     );
   }
 }

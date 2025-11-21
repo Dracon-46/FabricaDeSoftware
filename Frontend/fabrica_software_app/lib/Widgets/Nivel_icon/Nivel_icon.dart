@@ -10,13 +10,13 @@ class NivelIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     late IconData icon=FontAwesomeIcons.x;
-    if(nivel.toUpperCase()=='COLABORADOR'){
+    if(nivel.toUpperCase()=='MASTER'){
       icon=FontAwesomeIcons.dragon;
     }
     if(nivel.toUpperCase()=='ADMINISTRADOR'){
       icon=FontAwesomeIcons.userTie;
     }
-    if(nivel.toUpperCase()=='ADMIN'){
+    if(nivel.toUpperCase()=='USUARIO'){
       icon=FontAwesomeIcons.solidUser;
     }
 

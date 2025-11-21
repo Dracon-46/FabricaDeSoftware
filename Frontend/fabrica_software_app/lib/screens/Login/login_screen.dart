@@ -1,10 +1,10 @@
+import 'package:fabrica_software_app/screens/Login/Styles/style_login.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../Gerenciar_Projetos/Gerenciar_projetos.dart';
 
-// --- NOVO IMPORT ---
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class Loginscreen extends StatefulWidget {
   const Loginscreen({super.key});
@@ -236,22 +236,14 @@ class _LoginscreenState extends State<Loginscreen> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  icon: const FaIcon(FontAwesomeIcons.google, color: Colors.red, size: 18),
+                  icon: SvgPicture.asset('assets/SVG/Google_logo.svg', width: 28,),
                   label: const Text(
                     'Entrar com Google',
                     style: TextStyle(fontSize: 18, color: Colors.black87),
                   ),
-                  onPressed: _isLoading ? null : _signInWithGoogle, // Chama a função nova
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: BorderSide(color: Colors.grey[400]!),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
+                  onPressed: _isLoading ? null : _signInWithGoogle, 
+                  style:StyleLogin.btnGoogle
                 ),
-                // --- FIM DAS ADIÇÕES ---
-
                 const SizedBox(height: 32),
                 
               ],
