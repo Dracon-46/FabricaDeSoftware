@@ -12,8 +12,17 @@ class Tecnologia {
   });
 
   factory Tecnologia.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter de String/int para int?
+    int? _parseInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     return Tecnologia(
-      id: json['id'],
+      // CORREÇÃO: Usamos o _parseInt para converter com segurança
+      id: _parseInt(json['id']),
       nome: json['nome'],
       categoria: json['categoria'],
       descricao: json['descricao'],

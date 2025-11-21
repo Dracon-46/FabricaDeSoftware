@@ -86,7 +86,7 @@ class BarraLateral extends StatelessWidget {
                   title: Text('Gestão de Usuários',style: Barra_Lateral_Styles.TextStyleButtons,),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushReplacementNamed(context, '/Clientes');
+                    Navigator.pushReplacementNamed(context, '/Usuarios');
                   },
                 ),
 
@@ -99,6 +99,22 @@ class BarraLateral extends StatelessWidget {
                   },
                 ),
 
+                 ListTile(
+                  leading: const FaIcon(FontAwesomeIcons.users),
+                  title: Text('Gestão de Recursos',style: Barra_Lateral_Styles.TextStyleButtons,),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushReplacementNamed(context, '/Recursos');
+                  },
+                ),
+                 ListTile(
+                  leading: const FaIcon(FontAwesomeIcons.users),
+                  title: Text('Gestão de Tecnologias',style: Barra_Lateral_Styles.TextStyleButtons,),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushReplacementNamed(context, '/Tecnologias');
+                  },
+                ),
               ],
             ),
           ),
