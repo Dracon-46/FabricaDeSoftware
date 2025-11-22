@@ -15,7 +15,7 @@ class ConfiguracaoInicialProjetoStep extends ModalStep{
   IconData get icon => FontAwesomeIcons.gears;
 
    @override
-  List<Colors>get cores => <Colors>[Colors.blue, Colors.purple] ;
+  List<Color> get cores => <Color>[Color.fromARGB(255, 4, 187, 233)];
 
   @override
   Widget buildBody(BuildContext context) {

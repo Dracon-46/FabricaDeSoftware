@@ -15,6 +15,14 @@ Widget returnBody(BuildContext context){
   return _lista[_indice].buildBody(context);
 }
 
+List<Color> returnColors(){
+  List<Color> coresAtuais=_lista[_indice].cores;
+  if(_lista[_indice].cores.length==1){
+    coresAtuais.add(_lista[_indice].cores[0]);
+  }
+  return coresAtuais;
+}
+
 Widget returnFooter(BuildContext context){
   return _lista[_indice].buildFooter(context);
 }

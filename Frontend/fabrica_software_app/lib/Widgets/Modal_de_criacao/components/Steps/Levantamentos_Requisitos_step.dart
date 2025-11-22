@@ -15,6 +15,9 @@ class LevantamentosRequisitosStep extends ModalStep{
   IconData get icon => FontAwesomeIcons.robot;
 
   @override
+  List<Color> get cores => <Color>[Colors.amberAccent,Colors.blueAccent];
+
+  @override
   Widget buildBody(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

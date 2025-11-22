@@ -4,7 +4,7 @@ abstract class ModalStep {
   String get title;
   IconData get icon;
   String get tabName;
-  List<Colors> get cores;
+  List<Color> get cores;
   Widget buildBody(BuildContext context);
   Widget buildFooter(BuildContext context);
 }

@@ -38,8 +38,8 @@ class ModalDeCriacao extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Colors.blue, Colors.purple],
+                          gradient: LinearGradient(
+                            colors: provider.returnColors(),
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
