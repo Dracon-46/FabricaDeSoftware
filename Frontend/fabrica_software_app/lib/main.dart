@@ -1,7 +1,6 @@
 import 'package:fabrica_software_app/models/recurso.dart';
 import 'package:fabrica_software_app/providers/recursos_provider.dart';
 import 'package:fabrica_software_app/providers/tecnologias_provider.dart';
-import 'package:fabrica_software_app/screens/Api_teste/Teste.dart';
 import 'package:fabrica_software_app/screens/Cadastro/Cadastro_screen.dart';
 import 'package:fabrica_software_app/screens/Account/Account.dart';
 import 'package:fabrica_software_app/screens/Clientes/Clientes.dart';
@@ -64,7 +63,6 @@ class MyApp extends StatelessWidget {
           '/Cadastro':(context){return const CadastroScreen();},
           '/ApiTest':(context){return const ApiTestScreen();},
           '/Gerenciar_Projetos':(context){return const GerenciarProjetos();},
-          '/Teste':(context){return const Teste();},
           '/Account':(context){return const Account();},
           '/Clientes':(context){return const Clientes();},
           '/Recursos':(context){return const Recursos();},
