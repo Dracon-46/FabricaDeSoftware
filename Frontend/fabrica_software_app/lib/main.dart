@@ -1,3 +1,4 @@
+// ignore: unused_import
 import 'package:fabrica_software_app/models/recurso.dart';
 import 'package:fabrica_software_app/providers/recursos_provider.dart';
 import 'package:fabrica_software_app/providers/tecnologias_provider.dart';
@@ -6,13 +7,13 @@ import 'package:fabrica_software_app/screens/Account/Account.dart';
 import 'package:fabrica_software_app/screens/Clientes/Clientes.dart';
 import 'package:fabrica_software_app/screens/Recursos/Recursos.dart';
 import 'package:fabrica_software_app/screens/Tecnologias/Tecnologias.dart';
+// ignore: unused_import
 import 'package:fabrica_software_app/services/requisito_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/usuarios_provider.dart';
 import 'providers/projetos_provider.dart';
 import 'providers/clientes_provider.dart';
-import 'providers/tecnologias_provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/Api_teste/api_test_screen.dart';
 import 'screens/Login/login_screen.dart';

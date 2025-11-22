@@ -4,6 +4,7 @@ import 'package:fabrica_software_app/Widgets/Modal_de_criacao/Modal_de_criacao.d
 import 'package:fabrica_software_app/providers/modal_criacao_projeto_provider.dart';
 
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 

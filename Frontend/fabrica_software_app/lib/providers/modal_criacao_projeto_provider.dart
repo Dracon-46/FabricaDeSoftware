@@ -2,7 +2,6 @@ import 'package:fabrica_software_app/Widgets/Modal_de_criacao/components/Modal_s
 import 'package:fabrica_software_app/Widgets/Modal_de_criacao/components/Steps/Configuracao_Inicial_Projeto_step.dart';
 import 'package:fabrica_software_app/Widgets/Modal_de_criacao/components/Steps/Levantamentos_Requisitos_step.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ModalCriacaoProjetoProvider with ChangeNotifier {
 int _indice=0;

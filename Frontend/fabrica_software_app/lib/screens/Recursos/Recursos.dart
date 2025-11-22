@@ -5,7 +5,6 @@ import 'package:fabrica_software_app/providers/recursos_provider.dart';
 import 'package:fabrica_software_app/screens/Recursos/components/RecursosRow.dart';
 import 'package:fabrica_software_app/screens/Recursos/components/Recursos_modal.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 class Recursos extends StatefulWidget {
