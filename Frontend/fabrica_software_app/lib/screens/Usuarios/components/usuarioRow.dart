@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class ClienteRow extends StatelessWidget {
-  final String razaoSocial;
-  final String CNPJ;
-  final String setor;
-  final String contato;
+class UsuarioRow extends StatelessWidget {
+  final String nome;
+  final String email;
+  final String nivel;
+  final String telefone;
 
   final VoidCallback? onView;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
-  const ClienteRow({
+  const UsuarioRow({
     super.key,
-    required this.CNPJ,
-    required this.contato,
-    required this.razaoSocial,
-    required this.setor,
+    required this.nome,
+    required this.email,
+    required this.nivel,
+    required this.telefone,
     this.onView,
     this.onEdit,
     this.onDelete,
@@ -35,23 +35,23 @@ class ClienteRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           
-          // FLEX 3: Razão Social (Avatar + Texto)
+          // FLEX 3: Nome + Avatar
           Expanded(
             flex: 3,
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 16,
-                  backgroundColor: Colors.blue.withOpacity(0.1),
+                  backgroundColor: Colors.indigo.withOpacity(0.1),
                   child: Text(
-                    pegarIniciais(razaoSocial),
-                    style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12),
+                    pegarIniciais(nome),
+                    style: const TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    razaoSocial, 
+                    nome, 
                     style: const TextStyle(fontWeight: FontWeight.w500),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -60,53 +60,46 @@ class ClienteRow extends StatelessWidget {
             ),
           ),
           
-          // FLEX 2: CNPJ
+          // FLEX 3: Email
+          Expanded(
+            flex: 3, 
+            child: Text(email, overflow: TextOverflow.ellipsis),
+          ),
+
+          // FLEX 2: Telefone
           Expanded(
             flex: 2, 
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(CNPJ, overflow: TextOverflow.ellipsis),
-            ),
+            child: Text(telefone, overflow: TextOverflow.ellipsis),
           ),
           
-          // FLEX 1: Setor (Badge Centralizado)
+          // FLEX 2: Nível (Badge Centralizado)
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 51, 243, 33).withOpacity(0.1),
+                  // Lógica simples de cor baseada no nível
+                  color: (nivel.toLowerCase() == 'admin' ? Colors.red : Colors.blue).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  setor, 
-                  style: TextStyle(fontSize: 12, color: Colors.blue.shade900, fontWeight: FontWeight.w500),
+                  nivel.toUpperCase(), 
+                  style: TextStyle(
+                    fontSize: 11, 
+                    color: (nivel.toLowerCase() == 'admin' ? Colors.red : Colors.blue).shade900, 
+                    fontWeight: FontWeight.w600
+                  ),
                 ),
               ),
             ),
           ),
           
-          // FLEX 2: Contato (Com padding leve na esquerda)
+          // FLEX 2: Ações (Centralizado)
           Expanded(
-            flex: 2, 
-            child: Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: Text(contato, overflow: TextOverflow.ellipsis),
-            ),
-          ),
-          
-          // FLEX 1: Projetos (Centralizado)
-          const Expanded(
-            flex: 1, 
-            child: Center(child: Text('1 Projeto(s)')),
-          ),
-          
-          // FLEX 1: Ações (Alinhado à Direita)
-          Expanded(
-            flex: 1,
+            flex: 2,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center, // Empurra para a direita
+              mainAxisAlignment: MainAxisAlignment.center, // CENTRALIZADO
               children: [
                 _ActionButton(icon: FontAwesomeIcons.solidEye, onTap: onView, color: Colors.black54),
                 const SizedBox(width: 8),
@@ -134,7 +127,6 @@ class ClienteRow extends StatelessWidget {
   }
 }
 
-// Componente auxiliar para padronizar os botões de ação
 class _ActionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
@@ -149,7 +141,7 @@ class _ActionButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(50),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: FaIcon(icon, size: 18, color: color), // Ícone levemente menor (18)
+        child: FaIcon(icon, size: 18, color: color),
       ),
     );
   }

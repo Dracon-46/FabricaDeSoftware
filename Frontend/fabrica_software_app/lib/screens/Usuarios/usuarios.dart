@@ -1,44 +1,45 @@
 import 'package:fabrica_software_app/Widgets/App_bar/App_bar.dart';
 import 'package:fabrica_software_app/Widgets/Barra_lateral/Barra_Lateral.dart';
-import 'package:fabrica_software_app/models/recurso.dart';
-import 'package:fabrica_software_app/providers/recursos_provider.dart';
-import 'package:fabrica_software_app/screens/Recursos/components/RecursosRow.dart';
-import 'package:fabrica_software_app/screens/Recursos/components/Recursos_modal.dart';
+import 'package:fabrica_software_app/models/usuario.dart';
+import 'package:fabrica_software_app/providers/usuarios_provider.dart';
+
+import 'package:fabrica_software_app/screens/Usuarios/components/Usuario_modal.dart';
+import 'package:fabrica_software_app/screens/Usuarios/components/usuarioRow.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class Recursos extends StatefulWidget {
-  const Recursos({super.key});
+class Usuarios extends StatefulWidget {
+  const Usuarios({super.key});
 
   @override
-  State<Recursos> createState() => _RecursosState();
+  State<Usuarios> createState() => _UsuariosState();
 }
 
-class _RecursosState extends State<Recursos> {
+class _UsuariosState extends State<Usuarios> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<RecursosProvider>(context, listen: false).carregarRecursos();
+      Provider.of<UsuariosProvider>(context, listen: false).carregarUsuarios();
     });
   }
   
   @override
   Widget build(BuildContext context) {
-    final recursosProvider = context.watch<RecursosProvider>();
-    
+    final usuariosProvider = context.watch<UsuariosProvider>();
+
     return Scaffold(
       drawer: BarraLateral(),
       backgroundColor: const Color(0xFFF1F5F9),
       appBar: CustomAppBar(
-        title: 'Gestão de Recursos',
+        title: 'Gestão de Usuários',
         listaActions: [
           Padding(
             padding: const EdgeInsets.only(right: 20.0),
             child: ElevatedButton.icon(
-              onPressed: () => _abrirModalCriarRecurso(context), 
+              onPressed: () => _abrirModalCriarUsuario(context), 
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Novo Recurso'),
+              label: const Text('Novo Usuário'),
               style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.pink, 
                           foregroundColor: Colors.white,
@@ -60,7 +61,7 @@ class _RecursosState extends State<Recursos> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 34),
-                  // TODO: Filtros aqui
+                  // Filtros
                   const SizedBox(height: 24),
                   
                   Card(
@@ -74,18 +75,18 @@ class _RecursosState extends State<Recursos> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // --- TÍTULO E CONTADOR ---
+                        // Título e Contador
                         Padding(
                           padding: const EdgeInsets.all(20.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Lista de Recursos',
+                                'Lista de Usuários',
                                 style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                '${recursosProvider.recursos?.length ?? 0} recursos encontrados',
+                                '${usuariosProvider.usuarios?.length ?? 0} usuários encontrados',
                                 style: const TextStyle(color: Colors.grey),
                               ),
                             ],
@@ -99,56 +100,56 @@ class _RecursosState extends State<Recursos> {
                           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
                           child: Row(
                             children: const [
+                              Expanded(flex: 3, child: Text('Nome', style: TextStyle(fontWeight: FontWeight.bold))),
+                              Expanded(flex: 3, child: Text('E-mail', style: TextStyle(fontWeight: FontWeight.bold))),
+                              Expanded(flex: 2, child: Text('Telefone', style: TextStyle(fontWeight: FontWeight.bold))),
                               Expanded(
-                                flex: 3,
-                                child: Text('Nome', style: TextStyle(fontWeight: FontWeight.bold)),
+                                flex: 2, 
+                                child: Center(child: Text('Nível', style: TextStyle(fontWeight: FontWeight.bold)))
                               ),
-                              Expanded(flex: 2, child: Text('Tipo', style: TextStyle(fontWeight: FontWeight.bold))),
-                              Expanded(flex: 1, child: Text('Disponível', style: TextStyle(fontWeight: FontWeight.bold))),
-                              Expanded(flex: 2, child: Text('Descrição', style: TextStyle(fontWeight: FontWeight.bold))),
                               Expanded(
-                                flex: 1, 
+                                flex: 2,
                                 child: Center(
-                                  child: Text('Ações', style: TextStyle(fontWeight: FontWeight.bold))
-                                )
+                                  child: Text('Ações', style: TextStyle(fontWeight: FontWeight.bold)),
+                                ),
                               ),
                             ],
                           ),
                         ),
 
                         // --- LISTAGEM ---
-                        if (recursosProvider.isLoading)
+                        if (usuariosProvider.isLoading)
                           const Center(
                             child: Padding(
                               padding: EdgeInsets.all(32.0),
                               child: CircularProgressIndicator(),
                             ),
                           )
-                        else if (recursosProvider.error != null)
+                        else if (usuariosProvider.error != null)
                           Center(
                             child: Padding(
                               padding: const EdgeInsets.all(32.0),
-                              child: Text('Erro ao buscar recursos: ${recursosProvider.error}'),
+                              child: Text('Erro ao buscar usuários: ${usuariosProvider.error}'),
                             ),
                           )
-                        else if (recursosProvider.recursos == null || recursosProvider.recursos!.isEmpty)
+                        else if (usuariosProvider.usuarios == null || usuariosProvider.usuarios!.isEmpty)
                           const Center(
                             child: Padding(
                               padding: EdgeInsets.all(32.0),
-                              child: Text('Nenhum recurso encontrado.'),
+                              child: Text('Nenhum usuário encontrado.'),
                             ),
                           )
                         else
                           Column(
-                            children: recursosProvider.recursos!.map((recurso) {
-                              return RecursoRow(
-                                nome: recurso.nome, 
-                                tipo: recurso.tipo,
-                                disponivel: recurso.disponivel,
-                                descricao: recurso.descricao ?? '',
-                                onView: () => _abrirModalRecurso(context, recurso, RecursoModalMode.view),
-                                onEdit: () => _abrirModalRecurso(context, recurso, RecursoModalMode.edit),
-                                onDelete: () => _abrirModalRecurso(context, recurso, RecursoModalMode.delete),
+                            children: usuariosProvider.usuarios!.map((usuario) {
+                              return UsuarioRow(
+                                nome: usuario.nome, 
+                                email: usuario.email,
+                                nivel: usuario.nivel ?? 'Colaborador',
+                                telefone: usuario.telefone ?? '-',
+                                onView: () => _abrirModalUsuario(context, usuario, UsuarioModalMode.view),
+                                onEdit: () => _abrirModalUsuario(context, usuario, UsuarioModalMode.edit),
+                                onDelete: () => _abrirModalUsuario(context, usuario, UsuarioModalMode.delete),
                               );
                             }).toList(),
                           ),
@@ -165,23 +166,23 @@ class _RecursosState extends State<Recursos> {
   }
 }
 
-void _abrirModalRecurso(BuildContext context, Recurso recurso, RecursoModalMode modo) {
+void _abrirModalUsuario(BuildContext context, Usuario usuario, UsuarioModalMode modo) {
   showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) => RecursoModal(
+    builder: (ctx) => UsuarioModal(
       mode: modo,
-      recurso: recurso,
+      usuario: usuario,
     ),
   );
 }
 
-void _abrirModalCriarRecurso(BuildContext context) {
+void _abrirModalCriarUsuario(BuildContext context) {
   showDialog(
     context: context,
     barrierDismissible: false, 
-    builder: (ctx) => const RecursoModal(
-      mode: RecursoModalMode.create,
+    builder: (ctx) => const UsuarioModal(
+      mode: UsuarioModalMode.create,
     ),
   );
 }

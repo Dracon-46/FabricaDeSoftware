@@ -26,6 +26,7 @@ class ConfiguracaoInicialProjetoStep extends ModalStep{
         SizedBox(height: 10),
         TextField(decoration: InputDecoration(labelText: 'Nome do Projeto')),
         TextField(decoration: InputDecoration(labelText: 'Descrição')),
+        TextField(decoration: InputDecoration(labelText: 'seilá')),
         
       ],  
     );

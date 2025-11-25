@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:fabrica_software_app/models/recurso.dart';
+import 'package:fabrica_software_app/models/usuario.dart';
 import 'package:fabrica_software_app/providers/recursos_provider.dart';
 import 'package:fabrica_software_app/providers/tecnologias_provider.dart';
 import 'package:fabrica_software_app/screens/Cadastro/Cadastro_screen.dart';
@@ -7,6 +8,7 @@ import 'package:fabrica_software_app/screens/Account/Account.dart';
 import 'package:fabrica_software_app/screens/Clientes/Clientes.dart';
 import 'package:fabrica_software_app/screens/Recursos/Recursos.dart';
 import 'package:fabrica_software_app/screens/Tecnologias/Tecnologias.dart';
+import 'package:fabrica_software_app/screens/Usuarios/usuarios.dart';
 // ignore: unused_import
 import 'package:fabrica_software_app/services/requisito_service.dart';
 import 'package:flutter/material.dart';
@@ -68,12 +70,8 @@ class MyApp extends StatelessWidget {
           '/Clientes':(context){return const Clientes();},
           '/Recursos':(context){return const Recursos();},
           '/Tecnologias':(context){return const Tecnologias();},
-          // '/Requisitos':(context){return const Requisitos();},
-          // '/Contribuidores ':(context){return const Contribuidores();},
-          // '/Projetos':(context){return const Projetos();},
-          // '/Documentos':(context){return const Documentos();},
-          // '/Treinamentos':(context){return const Treinamentos();},
-          // '/Testes':(context){return const Testes();},
+          '/Usuarios':(context){return const Usuarios();},
+
         },
         title: 'Fábrica de Software',
         theme: ThemeData(

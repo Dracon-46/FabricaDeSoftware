@@ -1,38 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:fabrica_software_app/models/tecnologia.dart';
+import 'package:fabrica_software_app/models/usuario.dart';
 import 'package:provider/provider.dart';
-import 'package:fabrica_software_app/providers/tecnologias_provider.dart';
+import 'package:fabrica_software_app/providers/usuarios_provider.dart';
 
-enum TecnologiaModalMode {
+enum UsuarioModalMode {
   view,
   edit,
   delete,
   create,
 }
 
-class TecnologiaModal extends StatefulWidget {
-  final TecnologiaModalMode mode;
-  final Tecnologia? tecnologia;
+class UsuarioModal extends StatefulWidget {
+  final UsuarioModalMode mode;
+  final Usuario? usuario;
 
-  const TecnologiaModal({
+  const UsuarioModal({
     super.key,
     required this.mode,
-    this.tecnologia,
+    this.usuario,
   });
 
   @override
-  State<TecnologiaModal> createState() => _TecnologiaModalState();
+  State<UsuarioModal> createState() => _UsuarioModalState();
 }
 
-class _TecnologiaModalState extends State<TecnologiaModal> {
+class _UsuarioModalState extends State<UsuarioModal> {
   late TextEditingController _nomeController;
-  late TextEditingController _categoriaController;
-  late TextEditingController _descricaoController;
-  
+  late TextEditingController _emailController;
+  late TextEditingController _nivelController;
+  late TextEditingController _telefoneController;
+  late TextEditingController _senhaController;
+
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
+  // --- ESTILOS PADRÃO (Mesmo do ClienteModal) ---
   final BoxDecoration _inputBoxDecoration = BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.circular(12),
@@ -50,16 +54,20 @@ class _TecnologiaModalState extends State<TecnologiaModal> {
   @override
   void initState() {
     super.initState();
-    _nomeController = TextEditingController(text: widget.tecnologia?.nome ?? '');
-    _categoriaController = TextEditingController(text: widget.tecnologia?.categoria ?? '');
-    _descricaoController = TextEditingController(text: widget.tecnologia?.descricao ?? '');
+    _nomeController = TextEditingController(text: widget.usuario?.nome ?? '');
+    _emailController = TextEditingController(text: widget.usuario?.email ?? '');
+    _nivelController = TextEditingController(text: widget.usuario?.nivel ?? 'colaborador');
+    _telefoneController = TextEditingController(text: widget.usuario?.telefone ?? '');
+    _senhaController = TextEditingController(); // Senha começa vazia
   }
 
   @override
   void dispose() {
     _nomeController.dispose();
-    _categoriaController.dispose();
-    _descricaoController.dispose();
+    _emailController.dispose();
+    _nivelController.dispose();
+    _telefoneController.dispose();
+    _senhaController.dispose();
     super.dispose();
   }
 
@@ -111,26 +119,26 @@ class _TecnologiaModalState extends State<TecnologiaModal> {
     Color bgColorIcon;
 
     switch (widget.mode) {
-      case TecnologiaModalMode.view:
-        title = 'Detalhes da Tecnologia';
+      case UsuarioModalMode.view:
+        title = 'Detalhes do Usuário';
         icon = FontAwesomeIcons.solidEye;
         iconColor = const Color(0xFF2962FF);
         bgColorIcon = const Color(0xFFE3F2FD);
         break;
-      case TecnologiaModalMode.edit:
-        title = 'Editar Tecnologia';
+      case UsuarioModalMode.edit:
+        title = 'Editar Usuário';
         icon = FontAwesomeIcons.solidPenToSquare;
         iconColor = Colors.orange;
         bgColorIcon = Colors.orange.shade50;
         break;
-      case TecnologiaModalMode.delete:
-        title = 'Excluir Tecnologia';
+      case UsuarioModalMode.delete:
+        title = 'Excluir Usuário';
         icon = FontAwesomeIcons.trash;
         iconColor = Colors.red;
         bgColorIcon = Colors.red.shade50;
         break;
-      case TecnologiaModalMode.create:
-        title = 'Criar Tecnologia';
+      case UsuarioModalMode.create:
+        title = 'Novo Usuário';
         icon = FontAwesomeIcons.plus;
         iconColor = Colors.green;
         bgColorIcon = Colors.green.shade50;
@@ -161,7 +169,7 @@ class _TecnologiaModalState extends State<TecnologiaModal> {
   }
 
   Widget _buildBody(BuildContext context) {
-    if (widget.mode == TecnologiaModalMode.delete) {
+    if (widget.mode == UsuarioModalMode.delete) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0),
         child: RichText(
@@ -169,9 +177,9 @@ class _TecnologiaModalState extends State<TecnologiaModal> {
           text: TextSpan(
             style: const TextStyle(fontSize: 16, color: Colors.black87, height: 1.5),
             children: [
-              const TextSpan(text: 'Você tem certeza que deseja excluir a tecnologia \n'),
+              const TextSpan(text: 'Você tem certeza que deseja excluir o usuário \n'),
               TextSpan(
-                text: widget.tecnologia!.nome,
+                text: widget.usuario!.nome,
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
               const TextSpan(text: '\n\nEsta ação não pode ser desfeita.'),
@@ -181,14 +189,54 @@ class _TecnologiaModalState extends State<TecnologiaModal> {
       );
     }
 
-    final isView = widget.mode == TecnologiaModalMode.view;
+    final isView = widget.mode == UsuarioModalMode.view;
+    final isCreate = widget.mode == UsuarioModalMode.create;
 
     Widget formContent = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildLabelAndField("Nome *", controller: _nomeController, textValue: isView ? widget.tecnologia?.nome : null),
-        _buildLabelAndField("Categoria", controller: _categoriaController, textValue: isView ? widget.tecnologia?.categoria : null, isRequired: false),
-        _buildLabelAndField("Descrição", controller: _descricaoController, textValue: isView ? widget.tecnologia?.descricao : null, isRequired: false, maxLines: 3),
+        _buildLabelAndField("Nome *", controller: _nomeController, textValue: isView ? widget.usuario?.nome : null),
+        _buildLabelAndField("E-mail *", controller: _emailController, textValue: isView ? widget.usuario?.email : null),
+        _buildLabelAndField("Telefone", controller: _telefoneController, textValue: isView ? widget.usuario?.telefone : null, isRequired: false),
+        _buildLabelAndField("Nível (ex: admin, colaborador) *", controller: _nivelController, textValue: isView ? widget.usuario?.nivel : null),
+        
+        // Campo de Senha (Especial)
+        if (!isView)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isCreate ? "Senha *" : "Nova Senha (deixe em branco para manter)",
+                  style: TextStyle(fontSize: 13, color: Colors.grey[700], fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: _inputBoxDecoration,
+                  child: TextFormField(
+                    controller: _senhaController,
+                    obscureText: _obscurePassword,
+                    style: const TextStyle(color: Colors.black87, fontSize: 15),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      border: InputBorder.none,
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (isCreate && (value == null || value.isEmpty)) {
+                        return 'Senha é obrigatória na criação';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
 
@@ -196,8 +244,8 @@ class _TecnologiaModalState extends State<TecnologiaModal> {
     return Form(key: _formKey, child: formContent);
   }
 
-  Widget _buildLabelAndField(String label, {String? textValue, TextEditingController? controller, bool isRequired = true, int maxLines = 1}) {
-    bool isReadOnly = widget.mode == TecnologiaModalMode.view;
+  Widget _buildLabelAndField(String label, {String? textValue, TextEditingController? controller, bool isRequired = true}) {
+    bool isReadOnly = widget.mode == UsuarioModalMode.view;
     final textController = controller ?? TextEditingController(text: textValue ?? '');
 
     return Padding(
@@ -216,16 +264,13 @@ class _TecnologiaModalState extends State<TecnologiaModal> {
               controller: textController,
               readOnly: isReadOnly,
               enabled: !isReadOnly,
-              maxLines: maxLines,
               style: const TextStyle(color: Colors.black87, fontSize: 15),
               decoration: const InputDecoration(
                 contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
-                disabledBorder: InputBorder.none,
-                errorBorder: InputBorder.none,
-                focusedErrorBorder: InputBorder.none,
+                errorStyle: TextStyle(height: 0.8),
               ),
               validator: (value) {
                 if (!isReadOnly && isRequired && (value == null || value.isEmpty)) {
@@ -241,7 +286,7 @@ class _TecnologiaModalState extends State<TecnologiaModal> {
   }
 
   Widget _buildFooter(BuildContext context) {
-    if (widget.mode == TecnologiaModalMode.view) {
+    if (widget.mode == UsuarioModalMode.view) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -261,47 +306,72 @@ class _TecnologiaModalState extends State<TecnologiaModal> {
 
     String actionText;
     Color actionColor;
-    Future<void> Function()? actionCallback;
+    VoidCallback? actionCallback;
 
     switch (widget.mode) {
-      case TecnologiaModalMode.edit:
+      case UsuarioModalMode.edit:
         actionText = 'Salvar Alterações';
         actionColor = Theme.of(context).primaryColor;
         actionCallback = () async {
           if (_formKey.currentState?.validate() ?? false) {
             setState(() => _isLoading = true);
+            
             final data = {
               'nome': _nomeController.text,
-              'categoria': _categoriaController.text.isEmpty ? null : _categoriaController.text,
-              'descricao': _descricaoController.text.isEmpty ? null : _descricaoController.text,
+              'email': _emailController.text,
+              'nivel': _nivelController.text,
+              'telefone': _telefoneController.text.isEmpty ? null : _telefoneController.text,
             };
-            await context.read<TecnologiasProvider>().atualizarTecnologia(widget.tecnologia!.id!, data);
-            Navigator.pop(context);
+
+            // Lógica do Backend: só manda senha se tiver valor
+            if (_senhaController.text.isNotEmpty) {
+              data['senha'] = _senhaController.text;
+            }
+
+            try {
+              await context.read<UsuariosProvider>().atualizarUsuario(widget.usuario!.id!, data);
+              if (!mounted) return;
+              Navigator.pop(context);
+            } catch (e) {
+               // Tratar erro se necessário
+            } finally {
+               if (mounted) setState(() => _isLoading = false);
+            }
           }
         };
         break;
-      case TecnologiaModalMode.delete:
+      case UsuarioModalMode.delete:
         actionText = 'Excluir';
         actionColor = Colors.red;
         actionCallback = () async {
           setState(() => _isLoading = true);
-          await context.read<TecnologiasProvider>().excluirTecnologia(widget.tecnologia!.id!);
+          await context.read<UsuariosProvider>().excluirUsuario(widget.usuario!.id!);
+          if (!mounted) return;
           Navigator.pop(context);
         };
         break;
-      case TecnologiaModalMode.create:
-        actionText = 'Criar Tecnologia';
+      case UsuarioModalMode.create:
+        actionText = 'Criar Usuário';
         actionColor = Colors.green;
         actionCallback = () async {
           if (_formKey.currentState?.validate() ?? false) {
             setState(() => _isLoading = true);
             final data = {
               'nome': _nomeController.text,
-              'categoria': _categoriaController.text.isEmpty ? null : _categoriaController.text,
-              'descricao': _descricaoController.text.isEmpty ? null : _descricaoController.text,
+              'email': _emailController.text,
+              'senha': _senhaController.text, // Obrigatória aqui
+              'nivel': _nivelController.text,
+              'telefone': _telefoneController.text.isEmpty ? null : _telefoneController.text,
             };
-            await context.read<TecnologiasProvider>().criarTecnologia(data);
-            Navigator.pop(context);
+            try {
+              await context.read<UsuariosProvider>().criarUsuario(data);
+              if (!mounted) return;
+              Navigator.pop(context);
+            } catch (e) {
+              // Tratar erro
+            } finally {
+              if (mounted) setState(() => _isLoading = false);
+            }
           }
         };
         break;
@@ -319,7 +389,7 @@ class _TecnologiaModalState extends State<TecnologiaModal> {
         ),
         const SizedBox(width: 8),
         ElevatedButton(
-          onPressed: actionCallback,
+          onPressed: _isLoading ? null : actionCallback,
           style: ElevatedButton.styleFrom(
             backgroundColor: actionColor,
             foregroundColor: Colors.white,
