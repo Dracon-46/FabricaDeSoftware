@@ -78,7 +78,7 @@ class BarraLateral extends StatelessWidget {
                   context,
                   icon: FontAwesomeIcons.peopleGroup,
                   text: 'Equipe',
-                  rotaDestino: '/Equipe', 
+                  rotaDestino: '/Equipes', 
                   rotaAtual: rotaAtual,
                 ),
                 _buildMenuItem(
