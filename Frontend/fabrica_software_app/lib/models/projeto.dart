@@ -4,6 +4,7 @@ class Projeto {
   final int? id;
   final String nomeProjeto;
   final String? descricao;
+  final String? tipo; // <--- NOVO CAMPO
   final String? modeloProjeto;
   final String? metodologia;
   final String? escopo;
@@ -14,6 +15,7 @@ class Projeto {
   final double? orcamentoEstimado;
   final DateTime? dataCriacao;
   final int clienteId;
+  final String? clienteNome;
   final int? responsavelId;
   final int criadoPorId;
 
@@ -21,6 +23,7 @@ class Projeto {
     this.id,
     required this.nomeProjeto,
     this.descricao,
+    this.tipo, // <--- NO CONSTRUTOR
     this.modeloProjeto,
     this.metodologia,
     this.escopo,
@@ -31,39 +34,64 @@ class Projeto {
     this.orcamentoEstimado,
     this.dataCriacao,
     required this.clienteId,
+    this.clienteNome,
     this.responsavelId,
     required this.criadoPorId,
   });
 
+  // Getter para Status calculado
+  String get statusCalculado {
+    if (dataFinal != null) return 'Concluído';
+    if (dataFinalPrevisto != null && DateTime.now().isAfter(dataFinalPrevisto!)) {
+      return 'Atrasado'; 
+    }
+    return 'Em processo';
+  }
+
   factory Projeto.fromJson(Map<String, dynamic> json) {
+    // Helper para converter IDs com segurança (evita erro String vs int)
+    int? parseInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     return Projeto(
-      id: json['id'],
+      id: parseInt(json['id']),
       nomeProjeto: json['nome_projeto'],
       descricao: json['descricao'],
+      tipo: json['tipo'], // <--- LENDO DO JSON
       modeloProjeto: json['modelo_projeto'],
       metodologia: json['metodologia'],
       escopo: json['escopo'],
+      
       dataInicio: json['data_inicio'] != null 
-          ? DateTime.parse(json['data_inicio']) 
+          ? DateTime.tryParse(json['data_inicio'].toString()) 
           : null,
       dataFinalPrevisto: json['data_final_previsto'] != null 
-          ? DateTime.parse(json['data_final_previsto']) 
+          ? DateTime.tryParse(json['data_final_previsto'].toString()) 
           : null,
       dataFinal: json['data_final'] != null 
-          ? DateTime.parse(json['data_final']) 
+          ? DateTime.tryParse(json['data_final'].toString()) 
           : null,
+          
       complexidade: json['complexidade'] != null 
           ? ComplexidadeProjeto.fromString(json['complexidade'])
           : null,
+          
       orcamentoEstimado: json['orcamento_estimado'] != null 
-          ? double.parse(json['orcamento_estimado'].toString())
+          ? double.tryParse(json['orcamento_estimado'].toString())
           : null,
+          
       dataCriacao: json['data_criacao'] != null 
-          ? DateTime.parse(json['data_criacao']) 
+          ? DateTime.tryParse(json['data_criacao'].toString()) 
           : null,
-      clienteId: json['cliente_id'],
-      responsavelId: json['responsavel_id'],
-      criadoPorId: json['criado_por_id'],
+          
+      clienteId: parseInt(json['cliente_id']) ?? 0,
+      clienteNome: json['cliente_nome'], 
+      responsavelId: parseInt(json['responsavel_id']),
+      criadoPorId: parseInt(json['criado_por_id']) ?? 0,
     );
   }
 
@@ -72,6 +100,7 @@ class Projeto {
       'id': id,
       'nome_projeto': nomeProjeto,
       'descricao': descricao,
+      'tipo': tipo, // <--- ENVIANDO PARA O JSON
       'modelo_projeto': modeloProjeto,
       'metodologia': metodologia,
       'escopo': escopo,
@@ -85,41 +114,5 @@ class Projeto {
       'responsavel_id': responsavelId,
       'criado_por_id': criadoPorId,
     };
-  }
-
-  Projeto copyWith({
-    int? id,
-    String? nomeProjeto,
-    String? descricao,
-    String? modeloProjeto,
-    String? metodologia,
-    String? escopo,
-    DateTime? dataInicio,
-    DateTime? dataFinalPrevisto,
-    DateTime? dataFinal,
-    ComplexidadeProjeto? complexidade,
-    double? orcamentoEstimado,
-    DateTime? dataCriacao,
-    int? clienteId,
-    int? responsavelId,
-    int? criadoPorId,
-  }) {
-    return Projeto(
-      id: id ?? this.id,
-      nomeProjeto: nomeProjeto ?? this.nomeProjeto,
-      descricao: descricao ?? this.descricao,
-      modeloProjeto: modeloProjeto ?? this.modeloProjeto,
-      metodologia: metodologia ?? this.metodologia,
-      escopo: escopo ?? this.escopo,
-      dataInicio: dataInicio ?? this.dataInicio,
-      dataFinalPrevisto: dataFinalPrevisto ?? this.dataFinalPrevisto,
-      dataFinal: dataFinal ?? this.dataFinal,
-      complexidade: complexidade ?? this.complexidade,
-      orcamentoEstimado: orcamentoEstimado ?? this.orcamentoEstimado,
-      dataCriacao: dataCriacao ?? this.dataCriacao,
-      clienteId: clienteId ?? this.clienteId,
-      responsavelId: responsavelId ?? this.responsavelId,
-      criadoPorId: criadoPorId ?? this.criadoPorId,
-    );
   }
 }

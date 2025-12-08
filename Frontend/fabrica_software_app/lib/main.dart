@@ -6,6 +6,7 @@ import 'package:fabrica_software_app/providers/tecnologias_provider.dart';
 import 'package:fabrica_software_app/screens/Cadastro/Cadastro_screen.dart';
 import 'package:fabrica_software_app/screens/Account/Account.dart';
 import 'package:fabrica_software_app/screens/Clientes/Clientes.dart';
+import 'package:fabrica_software_app/screens/Equipe/Gerenciar_Equipes_Screen.dart';
 import 'package:fabrica_software_app/screens/Recursos/Recursos.dart';
 import 'package:fabrica_software_app/screens/Tecnologias/Tecnologias.dart';
 import 'package:fabrica_software_app/screens/Usuarios/usuarios.dart';
@@ -43,11 +44,6 @@ void main() async {
         ChangeNotifierProvider(create: (_) { return RecursosProvider();}),
         ChangeNotifierProvider(create: (_) { return ClientesProvider();}),
         ChangeNotifierProvider(create: (_) { return TecnologiasProvider();}),
-        // ChangeNotifierProvider(create: (_) { return RequisitosProvider();}),
-        // ChangeNotifierProvider(create: (_) { return ContribuidoresProvider();}),
-        // ChangeNotifierProvider(create: (_) { return TreinamentosProvider();}),
-        // ChangeNotifierProvider(create: (_) { return DocumentosProvider();}),
-        // ChangeNotifierProvider(create: (_) { return TestesProvider();}),
       ],  
       child: MyApp(),
     )
@@ -71,6 +67,7 @@ class MyApp extends StatelessWidget {
           '/Recursos':(context){return const Recursos();},
           '/Tecnologias':(context){return const Tecnologias();},
           '/Usuarios':(context){return const Usuarios();},
+          '/Equipes':(context){return const GerenciarEquipesScreen();},
 
         },
         title: 'Fábrica de Software',
