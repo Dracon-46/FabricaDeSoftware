@@ -43,6 +43,11 @@ dependencies:
   firebase_auth: ^6.1.2
   google_sign_in: ^7.2.0
   flutter_svg: ^2.2.2
+<<<<<<< HEAD
+=======
+  slang: ^3.31.0
+  slang_flutter: ^3.31.0
+>>>>>>> d5412547ca1795bc57c072a4a6ec2582364682c3
   intl: ^0.20.2
 
 dev_dependencies:
