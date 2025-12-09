@@ -1,34 +1,36 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart'; // Necessário para pegar o token
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fabrica_software_app/services/api_config.dart';
 
 class ApiService {
   
-  // --- GERENCIAMENTO DE TOKEN (NOVO) ---
+  // ===========================================================================
+  //                              HELPERS
+  // ===========================================================================
 
-  // Salva o token no dispositivo (Chame isso no seu Login!)
+  // Converte IDs que vêm como String ("8") do Postgres para Int (8)
+  static int _parseId(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  // Salva o token (Chame isso no Login se não estiver usando o AuthService para isso)
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token);
-    print("TOKEN SALVO: $token"); // Debug
+    await prefs.setString('auth_token', token);
   }
 
-  // Remove o token (Chame isso no Logout)
-  static Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
-  }
-
-  // Pega o cabeçalho com o token
+  // Monta o Header com o Token de Autenticação correto
   static Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString('auth_token');
+    // ATENÇÃO: A chave deve ser a mesma usada no seu login ('auth_token')
+    final String? token = prefs.getString('auth_token'); 
     
-    print("TOKEN RECUPERADO DO STORAGE: $token"); // Debug essencial
-
     if (token == null) {
-      print("ERRO: Tentando fazer requisição sem token salvo.");
+      print("ALERTA: Token de autenticação não encontrado no SharedPreferences.");
     }
 
     return {
@@ -37,25 +39,30 @@ class ApiService {
     };
   }
 
-  // --- HELPERS ---
-  
-  static int _parseId(dynamic value) {
-    if (value == null) return 0;
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value) ?? 0;
-    return 0;
+  // Helper Genérico para GET
+  static Future<List<dynamic>> _get(String endpoint) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
+    final headers = await _getHeaders();
+    
+    try {
+      final response = await http.get(uri, headers: headers);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Erro GET ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Falha na conexão ($endpoint): $e');
+    }
   }
 
-  // --- REQUISIÇÕES DE IA (COM AUTH) ---
+  // ===========================================================================
+  //                              MÉTODOS DE IA
+  // ===========================================================================
 
   static Future<List<dynamic>> gerarRequisitosBackend(String escopo, String nomeProjeto) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/ai/gerar-requisitos');
     final headers = await _getHeaders();
-
-    // Verificação de segurança antes de chamar
-    if (!headers.containsKey('Authorization')) {
-      throw Exception('Usuário não autenticado. Faça login novamente.');
-    }
 
     try {
       final response = await http.post(
@@ -68,6 +75,7 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
+        // Decodifica UTF8 para suportar acentos corretamente
         return jsonDecode(utf8.decode(response.bodyBytes));
       } else {
         throw Exception('Erro na IA (${response.statusCode}): ${response.body}');
@@ -77,14 +85,11 @@ class ApiService {
     }
   }
 
-  static Future<double> estimarOrcamentoBackend(Map<String, dynamic> dadosProjeto) async {
+  // Retorna Map com { "orcamento_estimado": double, "complexidade": string }
+  static Future<Map<String, dynamic>> estimarOrcamentoBackend(Map<String, dynamic> dadosProjeto) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/ai/estimar-orcamento');
     final headers = await _getHeaders();
     
-    if (!headers.containsKey('Authorization')) {
-      throw Exception('Usuário não autenticado. Faça login novamente.');
-    }
-
     try {
       final response = await http.post(
         uri,
@@ -93,36 +98,45 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return (data['orcamento_estimado'] as num).toDouble();
+        return jsonDecode(response.body);
       } else {
         throw Exception('Erro na IA de Orçamento (${response.statusCode})');
       }
     } catch (e) {
       print("Erro IA Orçamento: $e");
-      return 0.0;
+      throw Exception('Falha ao conectar com serviço de Orçamento');
     }
   }
 
-  // --- CRUD PROJETO ---
+  // ===========================================================================
+  //                          SALVAR PROJETO COMPLETO
+  // ===========================================================================
 
   static Future<void> criarProjetoCompleto(Map<String, dynamic> dtoData) async {
     final headers = await _getHeaders();
 
-    // 1. Criar Projeto
+    // 1. Criar Projeto Pai na tabela 'projetos'
     final uriProjeto = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.projetos}');
     
     final projetoPayload = {
       "nome_projeto": dtoData['nome_projeto'],
       "descricao": dtoData['descricao'],
+      // Novos campos adicionados:
+      "modelo_projeto": dtoData['modelo_projeto'], 
+      "tipo_projeto": dtoData['tipo_projeto'], // Mapeado do DTO.tipo
+      "escopo": dtoData['escopo'],                 
+      "complexidade": dtoData['complexidade'],     
+      
       "cliente_id": dtoData['cliente_id'],
       "metodologia": dtoData['metodologia'],
       "orcamento_estimado": dtoData['orcamento_estimado'],
       "data_inicio": dtoData['data_inicio'],
       "data_final_previsto": dtoData['data_final_previsto'],
-      "criado_por_id": 1, 
+      "criado_por_id": 1, // TODO: Obter dinamicamente do usuário logado se possível
       "responsavel_id": 1 
     };
+
+    print("Enviando Projeto Payload: $projetoPayload");
 
     final respProj = await http.post(uriProjeto, headers: headers, body: jsonEncode(projetoPayload));
 
@@ -131,94 +145,102 @@ class ApiService {
     }
 
     final projetoCriado = jsonDecode(respProj.body);
-    final int projetoId = _parseId(projetoCriado['id']);
-    print("Projeto $projetoId criado com sucesso.");
-
-    // 2. Vínculos (Usam o mesmo header)
+    final int projetoId = _parseId(projetoCriado['id']); // Converte ID string para int
     
-    // Tecnologias
-    for (var techId in (dtoData['tecnologias'] as List)) {
-      await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.tecnologiasProjeto}'),
-        headers: headers,
-        body: jsonEncode({
-          "projeto_id": projetoId,
-          "tecnologia_id": _parseId(techId),
-          "data_aprovacao": DateTime.now().toIso8601String(),
-          "aprovado_por_id": 1
-        })
-      );
-    }
+    print("Projeto criado com sucesso. ID: $projetoId. Iniciando vínculos...");
 
-    // Equipe
-    for (var membro in (dtoData['equipe'] as List)) {
-      await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.contribuidoresProjeto}'),
-        headers: headers,
-        body: jsonEncode({
-          "projeto_id": projetoId,
-          "contribuidor_id": _parseId(membro['id']),
-          "data_inicio": dtoData['data_inicio'],
-        })
-      );
-    }
+    // 2. Vínculos Sequenciais (Pivot Tables)
 
-    // Recursos
-    for (var recId in (dtoData['recursos'] as List)) {
-      await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.recursosProjeto}'),
-        headers: headers,
-        body: jsonEncode({
-          "projeto_id": projetoId,
-          "recurso_id": _parseId(recId),
-          "custo_hora": 0.0,
-          "data_alocacao": dtoData['data_inicio']
-        })
-      );
-    }
-
-    // Requisitos
-    for (var req in (dtoData['requisitos'] as List)) {
-      final respReq = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.requisitos}'), 
-        headers: headers,
-        body: jsonEncode({
-          "tipo": req['tipo'],
-          "descricao": "${req['titulo']}: ${req['descricao']}",
-          "observacoes": "Via App"
-        })
-      );
-
-      if (respReq.statusCode == 200 || respReq.statusCode == 201) {
-        final reqCriado = jsonDecode(respReq.body);
-        final reqId = _parseId(reqCriado['id']);
-
+    // a) Tecnologias
+    if (dtoData['tecnologias'] != null) {
+      for (var techId in (dtoData['tecnologias'] as List)) {
         await http.post(
-          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.requisitosProjeto}'),
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.tecnologiasProjeto}'),
           headers: headers,
           body: jsonEncode({
             "projeto_id": projetoId,
-            "requisito_id": reqId,
-            "prioridade": req['prioridade'].toString().toLowerCase(),
-            "codigo_requisito": "REQ-${DateTime.now().millisecondsSinceEpoch}",
-            "criado_por_id": 1
+            "tecnologia_id": _parseId(techId),
+            "data_aprovacao": DateTime.now().toIso8601String(),
+            "aprovado_por_id": 1
           })
         );
       }
     }
+
+    // b) Equipe (Contribuidores)
+    if (dtoData['equipe'] != null) {
+      for (var membro in (dtoData['equipe'] as List)) {
+        await http.post(
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.contribuidoresProjeto}'),
+          headers: headers,
+          body: jsonEncode({
+            "projeto_id": projetoId,
+            "contribuidor_id": _parseId(membro['id']),
+            "data_inicio": dtoData['data_inicio'],
+            "data_fim": dtoData['data_final_previsto']
+          })
+        );
+      }
+    }
+
+    // c) Recursos
+    if (dtoData['recursos'] != null) {
+      for (var recId in (dtoData['recursos'] as List)) {
+        await http.post(
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.recursosProjeto}'),
+          headers: headers,
+          body: jsonEncode({
+            "projeto_id": projetoId,
+            "recurso_id": _parseId(recId),
+            "custo_hora": 0.0,
+            "data_alocacao": dtoData['data_inicio'],
+            "data_desalocacao": dtoData['data_final_previsto']
+          })
+        );
+      }
+    }
+
+    // d) Requisitos (Criação + Vínculo)
+    if (dtoData['requisitos'] != null) {
+      for (var req in (dtoData['requisitos'] as List)) {
+        // Passo d1: Criar o requisito na tabela 'requisitos'
+        final respReq = await http.post(
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.requisitos}'), 
+          headers: headers,
+          body: jsonEncode({
+            "tipo": req['tipo'],
+            "descricao": "${req['titulo']}: ${req['descricao']}",
+            "observacoes": "Gerado via App Mobile"
+          })
+        );
+
+        if (respReq.statusCode == 200 || respReq.statusCode == 201) {
+          final reqCriado = jsonDecode(respReq.body);
+          final reqId = _parseId(reqCriado['id']);
+
+          // Passo d2: Vincular na tabela 'requisitos_projeto'
+          await http.post(
+            Uri.parse('${ApiConfig.baseUrl}${ApiConfig.requisitosProjeto}'),
+            headers: headers,
+            body: jsonEncode({
+              "projeto_id": projetoId,
+              "requisito_id": reqId,
+              "prioridade": req['prioridade'].toString().toLowerCase(), // Enum geralmente é lowercase
+              "codigo_requisito": "REQ-${DateTime.now().millisecondsSinceEpoch}",
+              "criado_por_id": 1
+            })
+          );
+        }
+      }
+    }
   }
 
-  // --- GETTERS ---
+  // ===========================================================================
+  //                          GETTERS (DADOS DO BANCO)
+  // ===========================================================================
+  
   static Future<List<dynamic>> getClientes() async => _get(ApiConfig.clientes);
   static Future<List<dynamic>> getTecnologias() async => _get(ApiConfig.tecnologias);
   static Future<List<dynamic>> getContribuidores() async => _get(ApiConfig.contribuidores);
   static Future<List<dynamic>> getRecursos() async => _get(ApiConfig.recursos);
-
-  static Future<List<dynamic>> _get(String endpoint) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
-    final headers = await _getHeaders();
-    final response = await http.get(uri, headers: headers);
-    if (response.statusCode == 200) return jsonDecode(response.body);
-    return [];
-  }
 }

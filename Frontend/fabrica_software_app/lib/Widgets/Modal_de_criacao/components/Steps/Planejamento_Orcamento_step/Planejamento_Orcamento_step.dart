@@ -11,13 +11,17 @@ import 'package:fabrica_software_app/services/api_service.dart';
 class PlanejamentoOrcamentoStep extends ModalStep {
   @override
   String get title => 'Planejamento & Orçamento';
+
   @override
   String get tabName => 'Finalização';
+
   @override
   IconData get icon => FontAwesomeIcons.calendarCheck;
+
   @override
   List<Color> get cores => <Color>[Colors.orangeAccent, Colors.deepOrange];
 
+  // Chave global para acessar o estado interno (validar e salvar)
   final GlobalKey<_PlanejamentoContentState> _contentKey = GlobalKey();
 
   @override
@@ -32,19 +36,22 @@ class PlanejamentoOrcamentoStep extends ModalStep {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Botão Cancelar
           TextButton(
             onPressed: () {
-              // Regra: Cancelar limpa tudo
+              // REGRA: Sair perde todo o progresso do rascunho
               projetoDraft.clear();
               Navigator.pop(context);
             },
             child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
           ),
+          
           Row(
             children: [
+              // Botão Voltar
               OutlinedButton(
                 onPressed: () {
-                  // Regra: Voltar limpa dados desta etapa
+                  // REGRA: Voltar perde o progresso DESTA etapa específica
                   if (_contentKey.currentState != null) {
                     _contentKey.currentState!.limparEtapa();
                   }
@@ -52,7 +59,10 @@ class PlanejamentoOrcamentoStep extends ModalStep {
                 },
                 child: const Text('Voltar', style: TextStyle(color: Colors.black87)),
               ),
+              
               const SizedBox(width: 12),
+              
+              // Botão CRIAR PROJETO (Final)
               ElevatedButton(
                 onPressed: () async {
                    if (_contentKey.currentState != null) {
@@ -60,7 +70,7 @@ class PlanejamentoOrcamentoStep extends ModalStep {
                    }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[700],
+                  backgroundColor: Colors.green[700], // Verde para indicar sucesso/finalização
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -99,6 +109,7 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
   bool _isCalculatingIA = false;
   bool _isSending = false;
 
+  // Chamado ao clicar em "Voltar" para limpar campos desta tela
   void limparEtapa() {
     _dataInicioCtrl.clear();
     _dataFimCtrl.clear();
@@ -106,8 +117,10 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
     projetoDraft.dataInicio = null;
     projetoDraft.dataFinalPrevista = null;
     projetoDraft.orcamentoEstimado = null;
+    projetoDraft.complexidade = null;
   }
 
+  // Lógica do DatePicker com Validação
   Future<void> _selectDate(TextEditingController ctrl, bool isStart) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -125,14 +138,28 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
     );
 
     if (picked != null) {
-      // Validação: Data Fim não pode ser menor que Inicio
+      // REGRA: Data Final não pode ser antes da Inicial
       if (!isStart && _dataInicio != null && picked.isBefore(_dataInicio!)) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("A data final não pode ser anterior à data de início."))
+          const SnackBar(
+            content: Text("A data final não pode ser anterior à data de início."),
+            backgroundColor: Colors.red,
+          )
         );
-        return;
+        return; // Não salva
       }
       
+      // REGRA: Data Inicial não pode ser depois da Final (caso mude a inicial depois)
+      if (isStart && _dataFim != null && picked.isAfter(_dataFim!)) {
+         ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("A data de início não pode ser posterior à data final."),
+            backgroundColor: Colors.red,
+          )
+        );
+        return; // Não salva
+      }
+
       setState(() {
         ctrl.text = DateFormat('dd/MM/yyyy').format(picked);
         if (isStart) _dataInicio = picked;
@@ -141,11 +168,11 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
     }
   }
 
-  // --- IA DINÂMICA NO BACKEND ---
+  // --- CHAMADA DE IA NO BACKEND ---
   Future<void> _estimarOrcamentoIA() async {
     if (_dataInicio == null || _dataFim == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Defina as datas para calcular a duração estimada."))
+        const SnackBar(content: Text("Defina as datas de início e fim para calcular a duração."))
       );
       return;
     }
@@ -155,40 +182,57 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
     try {
       final dias = _dataFim!.difference(_dataInicio!).inDays;
       
-      // Chama o ApiService que vai no Node.js
-      double valor = await ApiService.estimarOrcamentoBackend({
+      // Prepara dados para o Backend Node.js
+      final dadosParaIA = {
         "nome": projetoDraft.nome,
         "descricao": projetoDraft.descricao,
+        "escopo": projetoDraft.escopo ?? "", // Envia o escopo capturado anteriormente
         "duracao_dias": dias,
         "equipe": projetoDraft.equipe,
         "recursos": projetoDraft.recursos
-      });
+      };
+
+      // Chama o endpoint /api/ai/estimar-orcamento
+      final resultado = await ApiService.estimarOrcamentoBackend(dadosParaIA);
       
       setState(() {
+        // O backend retorna { "orcamento_estimado": float, "complexidade": string }
+        double valor = (resultado['orcamento_estimado'] as num).toDouble();
+        String complexidade = resultado['complexidade'] ?? 'media';
+
         _orcamentoCtrl.text = valor.toStringAsFixed(2);
+        
+        // Salva no DTO
         projetoDraft.orcamentoEstimado = valor;
+        projetoDraft.complexidade = complexidade;
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Estimativa concluída. Complexidade: ${complexidade.toUpperCase()}"),
+          backgroundColor: Colors.blue[700],
+        ));
       });
 
     } catch(e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Erro ao calcular orçamento."))
+        SnackBar(content: Text("Erro ao calcular orçamento: $e"), backgroundColor: Colors.red)
       );
     } finally {
       setState(() => _isCalculatingIA = false);
     }
   }
 
+  // --- FINALIZAÇÃO DO PROJETO ---
   Future<void> finalizarProjeto() async {
-    // VALIDAÇÕES
+    // 1. Validações de Campos Obrigatórios
     if (_dataInicioCtrl.text.isEmpty || _dataFimCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Preencha as datas de início e fim."))
+        const SnackBar(content: Text("As datas de início e fim são obrigatórias."))
       );
       return;
     }
     if (_orcamentoCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("O orçamento é obrigatório. Use a IA ou digite."))
+        const SnackBar(content: Text("O orçamento é obrigatório. Digite um valor ou use a IA."))
       );
       return;
     }
@@ -196,38 +240,54 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
     setState(() => _isSending = true);
 
     try {
+      // 2. Salvar dados desta tela no DTO
       projetoDraft.dataInicio = _dataInicio;
       projetoDraft.dataFinalPrevista = _dataFim;
-      projetoDraft.orcamentoEstimado = double.tryParse(_orcamentoCtrl.text.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+      // Remove simbolos de moeda se houver e converte para double
+      String valorLimpo = _orcamentoCtrl.text.replaceAll(RegExp(r'[^0-9.]'), '');
+      projetoDraft.orcamentoEstimado = double.tryParse(valorLimpo) ?? 0.0;
+      
+      // Garante complexidade padrão se a IA não tiver rodado
+      if (projetoDraft.complexidade == null) {
+        projetoDraft.complexidade = 'media';
+      }
 
-      // Monta Payload para o ApiService
+      // 3. Montar Payload Completo para o Backend
       final Map<String, dynamic> payload = {
+        // Tabela Projetos
         "nome_projeto": projetoDraft.nome,
         "descricao": projetoDraft.descricao,
+        "modelo_projeto": projetoDraft.modelo, // Campo novo
+        "escopo": projetoDraft.escopo,         // Campo novo
+        "complexidade": projetoDraft.complexidade, // Campo novo vindo da IA
         "cliente_id": projetoDraft.cliente?['id'],
         "metodologia": projetoDraft.metodologia,
         "data_inicio": projetoDraft.dataInicio?.toIso8601String(),
         "data_final_previsto": projetoDraft.dataFinalPrevista?.toIso8601String(),
         "orcamento_estimado": projetoDraft.orcamentoEstimado,
+        
+        // Tabelas Pivot (Relacionamentos)
         "tecnologias": projetoDraft.tecnologias.map((t) => t['id']).toList(),
-        "equipe": projetoDraft.equipe.toList(),
+        "equipe": projetoDraft.equipe, // Envia objeto completo (ApiService trata o ID)
         "recursos": projetoDraft.recursos.map((r) => r['id']).toList(),
-        "requisitos": projetoDraft.requisitos.toList()
+        "requisitos": projetoDraft.requisitos.toList() // Envia objetos completos para criar na tabela requisitos
       };
 
+      // 4. Enviar para API
       await ApiService.criarProjetoCompleto(payload);
 
       if (mounted) {
-        Navigator.pop(context); // Fecha Modal
+        Navigator.pop(context); // Fecha o Modal
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Projeto criado com sucesso!"), backgroundColor: Colors.green)
         );
-        projetoDraft.clear(); // Limpa rascunho
+        projetoDraft.clear(); // Limpa a memória
       }
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erro ao salvar: $e"), backgroundColor: Colors.red)
+          SnackBar(content: Text("Erro ao salvar projeto: $e"), backgroundColor: Colors.red)
         );
       }
     } finally {
@@ -237,21 +297,24 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
 
   @override
   Widget build(BuildContext context) {
+    // Estado de Loading ao salvar no banco
     if (_isSending) {
-       return const Center(child: Column(
-         mainAxisAlignment: MainAxisAlignment.center,
-         children: [
-           CircularProgressIndicator(),
-           SizedBox(height: 10),
-           Text("Criando Projeto no Banco...")
-         ],
-       ));
+       return const Center(
+         child: Column(
+           mainAxisAlignment: MainAxisAlignment.center,
+           children: [
+             CircularProgressIndicator(),
+             SizedBox(height: 12),
+             Text("Salvando Projeto e Gerando Vínculos...", style: TextStyle(color: Colors.grey))
+           ],
+         )
+       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Cabeçalho Interno
+        // Header Interno
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
@@ -268,6 +331,7 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
         ),
         const SizedBox(height: 24),
 
+        // Inputs de Data
         Row(
           children: [
              Expanded(
@@ -315,6 +379,7 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
         ),
         const SizedBox(height: 20),
 
+        // Input de Orçamento com Botão IA
         ComponentsConfiguracaoInicalProjeto.buildLabel("Orçamento Estimado", isRequired: true),
         Row(
           children: [
@@ -323,7 +388,7 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
                 decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
                 child: TextField(
                   controller: _orcamentoCtrl,
-                  keyboardType: TextInputType.number,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: ComponentsConfiguracaoInicalProjeto.inputDecoration("R\$ 0.00"),
                 ),
               ),
@@ -338,7 +403,8 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.purple, 
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16)
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
             )
           ],
@@ -346,7 +412,7 @@ class _PlanejamentoContentState extends State<_PlanejamentoContent> {
         const Padding(
           padding: EdgeInsets.only(top: 8.0),
           child: Text(
-            "O valor pode ser digitado manualmente ou estimado pela Inteligência Artificial com base no escopo e equipe.",
+            "Clique no botão IA para calcular o custo e a complexidade com base no escopo e equipe.",
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ),

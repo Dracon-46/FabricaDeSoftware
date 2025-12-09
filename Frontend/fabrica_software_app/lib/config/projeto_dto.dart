@@ -2,30 +2,36 @@ class ProjetoDTO {
   // Informações Gerais
   String? nome;
   String? descricao;
-  Map<String, dynamic>? cliente; // Guarda o objeto cliente inteiro {id, razao_social...}
+  String? modelo; // Ex: SaaS, Marketplace
+  String? tipo;   // NOVO: Web, Mobile, Desktop
+  Map<String, dynamic>? cliente;
   String? metodologia;
   
-  // Tecnologias (Multi-seleção)
-  List<Map<String, dynamic>> tecnologias = []; // Lista de objetos {id, nome...}
+  // Requisitos & Escopo
+  String? escopo;
+  List<Map<String, dynamic>> requisitos = [];
+
+  // Tecnologias
+  List<Map<String, dynamic>> tecnologias = [];
 
   // Alocação
-  List<Map<String, dynamic>> equipe = []; // {id, nome, cargo, papel}
-  List<Map<String, dynamic>> recursos = []; // {id, nome, tipo}
+  List<Map<String, dynamic>> equipe = [];
+  List<Map<String, dynamic>> recursos = [];
 
-  // Requisitos
-  List<Map<String, dynamic>> requisitos = []; // {titulo, descricao, tipo, prioridade}
-
-  // Planejamento
+  // Planejamento & IA
   DateTime? dataInicio;
   DateTime? dataFinalPrevista;
   double? orcamentoEstimado;
+  String? complexidade;
 
-  // Limpa os dados ao finalizar
   void clear() {
     nome = null;
     descricao = null;
+    modelo = null;
+    tipo = null; // Limpa o tipo
     cliente = null;
     metodologia = null;
+    escopo = null;
     tecnologias = [];
     equipe = [];
     recursos = [];
@@ -33,8 +39,8 @@ class ProjetoDTO {
     dataInicio = null;
     dataFinalPrevista = null;
     orcamentoEstimado = null;
+    complexidade = null;
   }
 }
 
-// Singleton global para acesso em todos os steps
 final projetoDraft = ProjetoDTO();

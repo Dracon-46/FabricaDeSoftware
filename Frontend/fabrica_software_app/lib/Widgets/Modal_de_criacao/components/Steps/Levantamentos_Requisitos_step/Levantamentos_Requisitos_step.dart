@@ -154,6 +154,8 @@ class _LevantamentoRequisitosContentState extends State<_LevantamentoRequisitosC
   }
 
   void salvarNoDTO() {
+    projetoDraft.escopo = _escopoController.text;
+    
     projetoDraft.requisitos = requisitos.map((r) => {
       'titulo': r.titulo,
       'descricao': r.descricao,
