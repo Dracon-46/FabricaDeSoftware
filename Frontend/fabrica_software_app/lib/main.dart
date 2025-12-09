@@ -8,6 +8,7 @@ import 'package:fabrica_software_app/screens/Account/Account.dart';
 import 'package:fabrica_software_app/screens/Clientes/Clientes.dart';
 import 'package:fabrica_software_app/screens/Equipe/Gerenciar_Equipes_Screen.dart';
 import 'package:fabrica_software_app/screens/Recursos/Recursos.dart';
+import 'package:fabrica_software_app/screens/Relatorio/Relatorio_Screen.dart';
 import 'package:fabrica_software_app/screens/Tecnologias/Tecnologias.dart';
 import 'package:fabrica_software_app/screens/Usuarios/usuarios.dart';
 // ignore: unused_import
@@ -68,7 +69,7 @@ class MyApp extends StatelessWidget {
           '/Tecnologias':(context){return const Tecnologias();},
           '/Usuarios':(context){return const Usuarios();},
           '/Equipes':(context){return const GerenciarEquipesScreen();},
-
+          '/Relatorios':(context){return const RelatoriosScreen();}
         },
         title: 'Fábrica de Software',
         theme: ThemeData(

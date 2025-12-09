@@ -32,6 +32,8 @@ dependencies:
   slang: ^3.31.0
   slang_flutter: ^3.31.0
   intl: ^0.20.2
+  url_launcher: ^6.3.2
+  fl_chart: ^0.68.0
 
 dev_dependencies:
   flutter_test:

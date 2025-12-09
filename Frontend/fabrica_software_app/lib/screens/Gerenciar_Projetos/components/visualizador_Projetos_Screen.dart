@@ -2,7 +2,7 @@ import 'package:fabrica_software_app/models/projeto.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart'; 
-
+import 'package:fabrica_software_app/screens/Documento/Documentos_Projeto_Screen.dart';
 class VisualizarProjetoScreen extends StatelessWidget {
   final Projeto projeto;
 
@@ -257,17 +257,27 @@ class VisualizarProjetoScreen extends StatelessWidget {
                             onPressed: () {},
                           ),
                           _DashboardInfoCard(
-                            title: "Documentação e Artefatos",
-                            icon: Icons.folder,
-                            themeColor: const Color(0xFF16A34A),
-                            stats: const [
-                              {"label": "Documentos", "value": "24 arquivos"},
-                              {"label": "Versões", "value": "v3.2"},
-                              {"label": "Última atualização", "value": "Hoje"},
-                            ],
-                            buttonText: "Ver Documentos",
-                            onPressed: () {},
+                      title: "Documentação e Artefatos",
+                      icon: Icons.folder,
+                      themeColor: const Color(0xFF16A34A),
+                      stats: const [
+                        // Esses dados são estáticos por enquanto, no futuro podemos puxar do banco
+                        {"label": "Documentos", "value": "Acessar"}, 
+                        {"label": "Repositório", "value": "Drive"},
+                      ],
+                      buttonText: "Ver Documentos",
+                      
+                      // --- AQUI ESTÁ A MUDANÇA ---
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DocumentosProjetoScreen(projeto: projeto),
                           ),
+                        );
+                      },
+                      // ---------------------------
+                    ),
                           _DashboardInfoCard(
                             title: "Relatórios de Treinamentos",
                             icon: FontAwesomeIcons.graduationCap,

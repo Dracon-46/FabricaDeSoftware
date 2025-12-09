@@ -18,6 +18,7 @@ const tecnologiasController = require("./controllers/tecnologias/tecnologiasCont
 const tecnologiasProjetoController = require("./controllers/tecnologiasProjeto/tecnologiasProjetoController.js");
 const testesController = require("./controllers/testes/testesController.js");
 const treinamentosController = require("./controllers/treinamentos/treinamentosController.js");
+const relatoriosController = require("./controllers/Relatorios/relatoriosController.js");
 
 const app = express();
 
@@ -172,6 +173,10 @@ app.delete("/api/treinamentos/:id", treinamentosController.delete);
 // --- ROTAS IA ---
 app.post("/api/ai/estimar-orcamento", authenticateToken, require("./controllers/aiController/aiController").estimarOrcamento);
 app.post("/api/ai/gerar-requisitos", authenticateToken, require("./controllers/aiController/aiController").gerarRequisitos);
+app.post("/api/ai/gerar-documento", authenticateToken, require("./controllers/aiController/aiController").gerarDocumentoIA);
+
+// Rota Relatorio
+app.get("/api/relatorios/dashboard", authenticateToken, relatoriosController.getDashboardStats);
 
 
 const PORT = process.env.PORT || 3000;
