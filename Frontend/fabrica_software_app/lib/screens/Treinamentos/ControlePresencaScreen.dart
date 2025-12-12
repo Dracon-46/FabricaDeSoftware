@@ -123,14 +123,14 @@ class _ControlePresencaScreenState extends State<ControlePresencaScreen> {
                           onPressed: () => _adicionarDia(context, provider), 
                           icon: const Icon(Icons.add, size: 18), 
                           label: const Text("Adiconar Dia"),
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16)),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEA580C), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16)),
                         ),
                         const SizedBox(width: 12),
                         ElevatedButton.icon(
                           onPressed: () => _showNovoAlunoDialog(context, provider),
                           icon: const Icon(Icons.person_add, size: 18), 
-                          label: const Text("Novo Aluno"),
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2563EB), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16)),
+                          label: const Text("Novo Participante"),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.pink, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16)),
                         ),
                       ])
                     ],
@@ -171,7 +171,7 @@ class _ControlePresencaScreenState extends State<ControlePresencaScreen> {
                                     color: const Color(0xFFF8FAFC),
                                     child: Row(
                                       children: [
-                                        _buildHeaderCell("Aluno", widthAluno, Alignment.centerLeft),
+                                        _buildHeaderCell("Participantes", widthAluno, Alignment.centerLeft),
                                         _buildHeaderCell("Status", widthStatus, Alignment.centerLeft),
                                         ...provider.headersDias.asMap().entries.map((entry) {
                                           return SizedBox(
@@ -187,7 +187,7 @@ class _ControlePresencaScreenState extends State<ControlePresencaScreen> {
                                         }),
                                         SizedBox(
                                           width: widthBtnAdd,
-                                          child: IconButton(icon: const Icon(Icons.add_circle, color: Color(0xFF10B981)), onPressed: () => _adicionarDia(context, provider)),
+                                          child: IconButton(icon: const Icon(Icons.add_circle, color: const Color(0xFFEA580C)), onPressed: () => _adicionarDia(context, provider)),
                                         )
                                       ],
                                     ),

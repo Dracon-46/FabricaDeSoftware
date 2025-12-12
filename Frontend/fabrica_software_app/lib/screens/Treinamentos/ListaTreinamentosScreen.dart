@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:fabrica_software_app/models/projeto.dart';
 import 'package:fabrica_software_app/providers/treinamentos_provider.dart';
 
-
 class ListaTreinamentosScreen extends StatelessWidget {
   final Projeto projeto;
 
@@ -16,115 +15,91 @@ class ListaTreinamentosScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<TreinamentosProvider>(
       create: (_) => TreinamentosProvider()..carregarTreinamentos(projeto.id!),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC), // Fundo cinza bem claro
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text(
-            "Treinamentos", // Título simples como no print
-            style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 22),
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 24),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => ModalCriarTreinamento(
-                      projetoId: projeto.id!,
-                      onSuccess: () => context.read<TreinamentosProvider>().carregarTreinamentos(projeto.id!),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text("Novo Treinamento"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981), // Verde (igual ao botão do print)
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
+      // ADICIONADO: O Builder cria um novo contexto abaixo do Provider
+      child: Builder(
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFF8FAFC), // Fundo cinza bem claro
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
+                onPressed: () => Navigator.pop(context),
               ),
-            )
-          ],
-        ),
-        
-        body: Consumer<TreinamentosProvider>(
-          builder: (context, provider, child) {
-            if (provider.isLoading) return const Center(child: CircularProgressIndicator());
-            
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1200),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 40),
-                      
-                      // 2. LISTA DE CARDS ESTILO "TICKET"
-                      if (provider.treinamentos.isEmpty)
-                        _buildEmptyState()
-                      else
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: provider.treinamentos.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 16),
-                          itemBuilder: (context, index) {
-                            return _buildCardEstiloFigma(context, provider, provider.treinamentos[index]);
-                          },
+              title: const Text(
+                "Treinamentos",
+                style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 22),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 24),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => ModalCriarTreinamento(
+                          projetoId: projeto.id!,
+                          // AGORA FUNCIONA: O context aqui já enxerga o Provider
+                          onSuccess: () => context.read<TreinamentosProvider>().carregarTreinamentos(projeto.id!),
                         ),
-                    ],
+                      );
+                    },
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text("Novo Treinamento"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.pink, // Verde
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
+                )
+              ],
+            ),
+            
+            body: Consumer<TreinamentosProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading) return const Center(child: CircularProgressIndicator());
+                
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1200),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 40),
+                          
+                          // LISTA DE CARDS
+                          if (provider.treinamentos.isEmpty)
+                            _buildEmptyState()
+                          else
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: provider.treinamentos.length,
+                              separatorBuilder: (_, __) => const SizedBox(height: 16),
+                              itemBuilder: (context, index) {
+                                return _buildCardEstiloFigma(context, provider, provider.treinamentos[index]);
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        }
       ),
     );
   }
 
-  // --- KPI CARD ---
-  Widget _buildKpiCard(String label, String value, IconData icon, MaterialColor color) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: color.shade50, borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: color.shade600, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-              const SizedBox(height: 4),
-              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- CARD PRINCIPAL (REFEITO IGUAL AO PRINT) ---
+  // --- CARD PRINCIPAL ---
   Widget _buildCardEstiloFigma(BuildContext context, TreinamentosProvider provider, dynamic t) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -145,12 +120,6 @@ class ListaTreinamentosScreen extends StatelessWidget {
               Text(t['nome'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
               const SizedBox(width: 12),
               
-              // Badge "Ativo"
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(20)),
-                child: const Text("Ativo", style: TextStyle(color: Color(0xFF166534), fontSize: 11, fontWeight: FontWeight.bold)),
-              ),
 
               const Spacer(), // Empurra o botão para a direita
 
@@ -162,7 +131,7 @@ class ListaTreinamentosScreen extends StatelessWidget {
                 icon: const Icon(Icons.assignment_outlined, size: 16),
                 label: const Text("Lista de Chamada"),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB), // Azul Royal
+                  backgroundColor: const Color(0xFFEA580C), // Azul Royal
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -187,10 +156,6 @@ class ListaTreinamentosScreen extends StatelessWidget {
             children: [
               _buildInfoIcon(Icons.calendar_today_outlined, "${_formatDate(t['data_inicio'])} - ${_formatDate(t['data_termino'])}"),
               const SizedBox(width: 24),
-              _buildInfoIcon(Icons.people_outline, "0 alunos"), // Poderia vir do backend count
-              const SizedBox(width: 24),
-              _buildInfoIcon(Icons.book_outlined, "${t['duracao_horas'] ?? 0} aulas"),
-              
               const Spacer(),
               
               // Menu de Mais Opções (Editar/Excluir) discreto no canto
