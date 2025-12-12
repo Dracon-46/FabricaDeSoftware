@@ -20,6 +20,7 @@ const testesController = require("./controllers/testes/testesController.js");
 const treinamentosController = require("./controllers/treinamentos/treinamentosController.js");
 const relatoriosController = require("./controllers/Relatorios/relatoriosController.js");
 
+
 const app = express();
 
 // Configurando CORS
@@ -155,21 +156,6 @@ app.get("/api/tecnologias-projeto/:projetoId/:tecnologiaId", tecnologiasProjetoC
 app.put("/api/tecnologias-projeto/:projetoId/:tecnologiaId", tecnologiasProjetoController.update);
 app.delete("/api/tecnologias-projeto/:projetoId/:tecnologiaId", tecnologiasProjetoController.delete);
 
-// Testes e Treinamentos
-app.get("/api/testes", testesController.index);
-app.post("/api/testes", testesController.store);
-app.get("/api/testes/projeto/:projeto_id", testesController.byProjeto);
-app.get("/api/testes/:id", testesController.show);
-app.put("/api/testes/:id", testesController.update);
-app.delete("/api/testes/:id", testesController.delete);
-
-app.get("/api/treinamentos", treinamentosController.index);
-app.post("/api/treinamentos", treinamentosController.store);
-app.get("/api/treinamentos/instrutor/:nomeInstrutor", treinamentosController.byInstrutor);
-app.get("/api/treinamentos/:id", treinamentosController.show);
-app.put("/api/treinamentos/:id", treinamentosController.update);
-app.delete("/api/treinamentos/:id", treinamentosController.delete);
-
 // --- ROTAS IA ---
 app.post("/api/ai/estimar-orcamento", authenticateToken, require("./controllers/aiController/aiController").estimarOrcamento);
 app.post("/api/ai/gerar-requisitos", authenticateToken, require("./controllers/aiController/aiController").gerarRequisitos);
@@ -178,7 +164,23 @@ app.post("/api/ai/gerar-documento", authenticateToken, require("./controllers/ai
 // Rota Relatorio
 app.get("/api/relatorios/dashboard", authenticateToken, relatoriosController.getDashboardStats);
 
+// --- TREINAMENTOS E PRESENÇA (ORDEM CORRIGIDA) ---
 
+// 1. ROTAS ESPECÍFICAS PRIMEIRO (Para não confundir com :id)
+app.get("/api/treinamentos/:id/presenca", authenticateToken, treinamentosController.getPresenca);
+app.post("/api/treinamentos/aluno", authenticateToken, treinamentosController.addAlunoSheet);
+app.post("/api/treinamentos/dia", authenticateToken, treinamentosController.addDiaSheet);
+app.put("/api/treinamentos/presenca/lote", authenticateToken, treinamentosController.salvarLote);
+app.delete("/api/treinamentos/aluno", authenticateToken, treinamentosController.removerAlunoSheet); // Agora esta vem antes
+app.delete("/api/treinamentos/dia", authenticateToken, treinamentosController.removerDiaSheet);     // e esta também
+
+// 2. DEPOIS AS ROTAS GENÉRICAS (CRUD)
+app.get("/api/treinamentos", treinamentosController.index);
+app.post("/api/treinamentos", treinamentosController.store);
+app.get("/api/treinamentos/instrutor/:nomeInstrutor", treinamentosController.byInstrutor);
+app.get("/api/treinamentos/:id", treinamentosController.show);
+app.put("/api/treinamentos/:id", treinamentosController.update);
+app.delete("/api/treinamentos/:id", treinamentosController.delete); // Esta captura qualquer coisa que sobrou
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);

@@ -1,4 +1,5 @@
 import 'package:fabrica_software_app/models/projeto.dart';
+import 'package:fabrica_software_app/screens/Treinamentos/ListaTreinamentosScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart'; 
@@ -278,18 +279,29 @@ class VisualizarProjetoScreen extends StatelessWidget {
                       },
                       // ---------------------------
                     ),
+                                  // --- CARD TREINAMENTOS (CORRIGIDO) ---
                           _DashboardInfoCard(
                             title: "Relatórios de Treinamentos",
                             icon: FontAwesomeIcons.graduationCap,
                             themeColor: const Color(0xFFEA580C),
                             stats: const [
-                              {"label": "Treinamentos", "value": "5 concluídos"},
-                              {"label": "Participantes", "value": "12 pessoas"},
-                              {"label": "Certificações", "value": "10 emitidas"},
+                              {"label": "Treinamentos", "value": "Verificar"},
+                              {"label": "Participantes", "value": "Gerenciar"},
+                              {"label": "Frequência", "value": "Sheets"},
                             ],
                             buttonText: "Ver Treinamentos",
-                            onPressed: () {},
+                            // NAVEGAÇÃO PARA A LISTA
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ListaTreinamentosScreen(projeto: projeto),
+                                ),
+                              );
+                            },
                           ),
+                          // -------------------------------------
+
                           _DashboardInfoCard(
                             title: "Relatórios de Testes",
                             icon: Icons.bug_report,
