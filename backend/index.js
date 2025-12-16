@@ -174,6 +174,14 @@ app.put("/api/treinamentos/presenca/lote", authenticateToken, treinamentosContro
 app.delete("/api/treinamentos/aluno", authenticateToken, treinamentosController.removerAlunoSheet); // Agora esta vem antes
 app.delete("/api/treinamentos/dia", authenticateToken, treinamentosController.removerDiaSheet);     // e esta também
 
+// Rotas de Testes
+app.get("/api/testes", testesController.index);
+app.post("/api/testes", testesController.store);
+app.get("/api/testes/projeto/:projeto_id", testesController.byProjeto); // Essa é a rota que a tela está tentando acessar
+app.get("/api/testes/:id", testesController.show);
+app.put("/api/testes/:id", testesController.update);
+app.delete("/api/testes/:id", testesController.delete);
+
 // 2. DEPOIS AS ROTAS GENÉRICAS (CRUD)
 app.get("/api/treinamentos", treinamentosController.index);
 app.post("/api/treinamentos", treinamentosController.store);

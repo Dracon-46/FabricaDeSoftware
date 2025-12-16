@@ -1,6 +1,7 @@
 import 'package:fabrica_software_app/Widgets/App_bar/App_bar.dart';
 import 'package:fabrica_software_app/Widgets/Barra_lateral/Barra_Lateral.dart';
 import 'package:fabrica_software_app/Widgets/Modal_de_criacao/Modal_de_criacao.dart';
+import 'package:fabrica_software_app/config/projeto_dto.dart';
 import 'package:fabrica_software_app/providers/modal_criacao_projeto_provider.dart';
 import 'package:fabrica_software_app/providers/projetos_provider.dart'; // Importe o provider
 import 'components/Card_Projeto.dart';
@@ -59,13 +60,19 @@ class _GerenciarProjetosState extends State<GerenciarProjetos> {
 }
 
 void abrirModalCriacao(BuildContext context) {
+  projetoDraft.clear(); // 1. Limpa dados
+
   showDialog(
     context: context,
     barrierDismissible: false,
     builder: (_) {
       return ChangeNotifierProvider(
-        create: (_) => ModalCriacaoProjetoProvider(),
-        child: ModalDeCriacao(),
+        create: (_) {
+          final p = ModalCriacaoProjetoProvider();
+          p.iniciarCriacao(); // <--- ATIVA O MODO CRIAÇÃO (Wizard)
+          return p;
+        },
+        child: const ModalDeCriacao(),
       );
     },
   );

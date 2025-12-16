@@ -1,4 +1,5 @@
 import 'package:fabrica_software_app/models/projeto.dart';
+import 'package:fabrica_software_app/screens/Tests/Teste_screen.dart';
 import 'package:fabrica_software_app/screens/Treinamentos/ListaTreinamentosScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -317,7 +318,14 @@ class VisualizarProjetoScreen extends StatelessWidget {
                               {"label": "Bugs encontrados", "value": "8", "valueColor": Colors.red},
                             ],
                             buttonText: "Ver Relatórios",
-                            onPressed: () {},
+                             onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => TestesScreen(projetoId: projeto.id ?? 0, nomeProjeto: projeto.nomeProjeto)
+                                ),
+                              );
+                            },
                           ),
                         ],
                       );

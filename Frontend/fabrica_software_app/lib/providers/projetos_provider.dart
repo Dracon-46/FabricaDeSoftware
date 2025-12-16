@@ -100,4 +100,20 @@ class ProjetosProvider with ChangeNotifier {
     _filtroStatus = 'Todos os status';
     notifyListeners();
   }
+
+  // No arquivo providers/projetos_provider.dart
+
+Future<void> excluirProjeto(int id) async {
+  try {
+    await _service.deleteProjeto(id); // Chama a API
+    
+    // Remove da lista localmente para não precisar recarregar tudo
+    _projetos.removeWhere((p) => p.id == id);
+    
+    notifyListeners(); // Atualiza a tela
+  } catch (e) {
+    _error = "Erro ao excluir: $e";
+    notifyListeners();
+  }
+}
 }

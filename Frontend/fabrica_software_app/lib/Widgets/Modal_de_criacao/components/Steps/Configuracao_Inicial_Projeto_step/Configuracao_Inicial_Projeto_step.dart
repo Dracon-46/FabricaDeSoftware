@@ -3,7 +3,7 @@ import 'package:fabrica_software_app/providers/modal_criacao_projeto_provider.da
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'components.dart'; // Seus componentes visuais
+import 'components.dart'; 
 import 'package:fabrica_software_app/config/projeto_dto.dart';
 import 'package:fabrica_software_app/services/api_service.dart';
 
@@ -20,7 +20,6 @@ class ConfiguracaoInicialProjetoStep extends ModalStep {
   @override
   List<Color> get cores => <Color>[const Color.fromARGB(255, 4, 187, 233)];
 
-  // Chave global para acessar o estado da tela e validar
   final GlobalKey<_ConfiguracaoContentState> _contentKey = GlobalKey();
 
   @override
@@ -37,9 +36,8 @@ class ConfiguracaoInicialProjetoStep extends ModalStep {
         children: [
           ElevatedButton(
             onPressed: () {
-              // Só avança se a validação passar e salvar no DTO
               if (_contentKey.currentState != null) {
-                if (_contentKey.currentState!.validarESalvar()) {
+                if (_contentKey.currentState!.validar()) {
                   context.read<ModalCriacaoProjetoProvider>().nextIndex();
                 }
               }
@@ -72,65 +70,101 @@ class _ConfiguracaoContent extends StatefulWidget {
 }
 
 class _ConfiguracaoContentState extends State<_ConfiguracaoContent> {
-  // Controladores de Texto
-  final _nomeCtrl = TextEditingController();
-  final _descCtrl = TextEditingController();
-  final _modeloCtrl = TextEditingController(); // Ex: SaaS, B2B
-  final _metodologiaCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   
-  // Listas vindas do Banco de Dados
+  // Inicializamos os controllers já com os dados do DTO para garantir que apareçam
+  late TextEditingController _nomeCtrl;
+  late TextEditingController _descCtrl;
+  late TextEditingController _metodologiaCtrl;
+  
   List<dynamic> _listaClientesDB = [];
   List<dynamic> _listaTecnologiasDB = [];
 
-  // Variáveis de Seleção
   Map<String, dynamic>? _clienteSelecionado;
   List<Map<String, dynamic>> _tecnologiasSelecionadas = [];
   
-  // Campo Tipo (Dropdown estático ou vindo do banco se preferir, aqui fiz estático)
   String? _tipoSelecionado;
-  final List<String> _opcoesTipo = ['Web', 'Mobile', 'Desktop', 'API/Backend', 'Híbrido', 'Outro'];
+  final List<String> _opcoesTipo = ['Web', 'Mobile', 'Desktop', 'API', 'Híbrido', 'Outro'];
+
+  String? _modeloSelecionado;
+  final List<String> _opcoesModelo = ['SaaS', 'Marketplace', 'E-commerce', 'Institucional', 'Interno', 'Outros'];
 
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _carregarDadosIniciais();
+    
+    // 1. Vínculo Imediato dos Dados Básicos (Evita delay visual)
+    _nomeCtrl = TextEditingController(text: projetoDraft.nome ?? '');
+    _descCtrl = TextEditingController(text: projetoDraft.descricao ?? '');
+    _metodologiaCtrl = TextEditingController(text: projetoDraft.metodologia ?? ''); // <--- Aqui garante a Metodologia
+
+    _carregarDadosAsync();
   }
 
-  Future<void> _carregarDadosIniciais() async {
+  @override
+  void dispose() {
+    _nomeCtrl.dispose();
+    _descCtrl.dispose();
+    _metodologiaCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _carregarDadosAsync() async {
     try {
-      // Busca dados reais do Backend em paralelo
+      // Busca listas gerais
       final results = await Future.wait([
         ApiService.getClientes(),
         ApiService.getTecnologias()
       ]);
+
+      List<int> idsTecnologiasDoProjeto = [];
+      
+      // Se for EDIÇÃO (tem ID), busca as tecnologias específicas desse projeto no banco
+      if (projetoDraft.id != null) {
+        idsTecnologiasDoProjeto = await ApiService.getTecnologiasDoProjeto(projetoDraft.id!);
+      }
 
       if (mounted) {
         setState(() {
           _listaClientesDB = results[0];
           _listaTecnologiasDB = results[1];
 
-          // --- PERSISTÊNCIA: Restaurar dados do DTO se o usuário voltou ---
-          if (projetoDraft.nome != null) _nomeCtrl.text = projetoDraft.nome!;
-          if (projetoDraft.descricao != null) _descCtrl.text = projetoDraft.descricao!;
-          if (projetoDraft.modelo != null) _modeloCtrl.text = projetoDraft.modelo!;
-          if (projetoDraft.metodologia != null) _metodologiaCtrl.text = projetoDraft.metodologia!;
-          if (projetoDraft.tipo != null) _tipoSelecionado = projetoDraft.tipo;
-
-          // Restaurar Cliente (Busca pelo ID na lista carregada para manter o objeto correto)
-          if (projetoDraft.cliente != null) {
-            try {
-              _clienteSelecionado = _listaClientesDB.firstWhere(
-                (c) => c['id'] == projetoDraft.cliente!['id']
-              );
-            } catch (_) {
-              // Cliente não existe mais na lista ou erro de busca
-            }
+          // 2. Configura Dropdowns (Tipo e Modelo)
+          if (projetoDraft.tipo != null) {
+             _tipoSelecionado = _encontrarOpcao(projetoDraft.tipo!, _opcoesTipo);
+          }
+          if (projetoDraft.modelo != null) {
+             _modeloSelecionado = _encontrarOpcao(projetoDraft.modelo!, _opcoesModelo);
           }
 
-          // Restaurar Tecnologias
-          if (projetoDraft.tecnologias.isNotEmpty) {
+          // 3. Configura Cliente
+          if (projetoDraft.cliente != null && projetoDraft.cliente!['id'] != null) {
+            try {
+              final idDraft = projetoDraft.cliente!['id'].toString();
+              _clienteSelecionado = _listaClientesDB.firstWhere(
+                (c) => c['id'].toString() == idDraft,
+                orElse: () => null
+              );
+              // Atualiza o DTO para garantir consistência
+              if (_clienteSelecionado != null) projetoDraft.cliente = _clienteSelecionado;
+            } catch (_) {}
+          }
+
+          // 4. Configura Tecnologias (A Mágica da Edição)
+          if (projetoDraft.id != null && idsTecnologiasDoProjeto.isNotEmpty) {
+            // Filtra da lista geral apenas as que o projeto tem
+            _tecnologiasSelecionadas = _listaTecnologiasDB
+                .where((tech) => idsTecnologiasDoProjeto.contains(tech['id']))
+                .map((e) => Map<String, dynamic>.from(e)) // Cria cópia segura
+                .toList();
+            
+            // Salva no DTO para persistir
+            projetoDraft.tecnologias = _tecnologiasSelecionadas;
+          } 
+          // Se for CRIAÇÃO ou já tiver tecnologias no draft (navegação entre abas)
+          else if (projetoDraft.tecnologias.isNotEmpty) {
             _tecnologiasSelecionadas = List.from(projetoDraft.tecnologias);
           }
           
@@ -138,44 +172,36 @@ class _ConfiguracaoContentState extends State<_ConfiguracaoContent> {
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erro ao carregar dados: $e"), backgroundColor: Colors.red)
-        );
-      }
+      print("Erro no carregamento: $e");
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // Função chamada pelo botão "Próxima Etapa"
-  bool validarESalvar() {
-    // 1. Validações
+  String? _encontrarOpcao(String valor, List<String> lista) {
+    try {
+      return lista.firstWhere(
+        (e) => e.toUpperCase() == valor.toUpperCase(),
+        orElse: () => lista.first
+      );
+    } catch (_) { return null; }
+  }
+
+  bool validar() {
     if (_nomeCtrl.text.trim().isEmpty) {
       _showError('O Nome do projeto é obrigatório.');
       return false;
     }
     if (_tipoSelecionado == null) {
-      _showError('Selecione o Tipo do projeto (Web, Mobile...).');
+      _showError('Selecione o Tipo do projeto.');
       return false;
     }
     if (_clienteSelecionado == null) {
-      _showError('Selecione um Cliente para o projeto.');
+      _showError('Selecione um Cliente.');
       return false;
     }
-    if (_tecnologiasSelecionadas.isEmpty) {
-      _showError('Selecione pelo menos uma Tecnologia.');
-      return false;
-    }
-
-    // 2. Salvar no DTO Global
+    // Salvamento final
     projetoDraft.nome = _nomeCtrl.text;
-    projetoDraft.descricao = _descCtrl.text;
-    projetoDraft.modelo = _modeloCtrl.text;
-    projetoDraft.tipo = _tipoSelecionado; // Salva o Tipo
-    projetoDraft.cliente = _clienteSelecionado;
-    projetoDraft.metodologia = _metodologiaCtrl.text;
-    projetoDraft.tecnologias = _tecnologiasSelecionadas;
-
+    projetoDraft.metodologia = _metodologiaCtrl.text; // Garante salvar metodologia
     return true;
   }
 
@@ -185,7 +211,6 @@ class _ConfiguracaoContentState extends State<_ConfiguracaoContent> {
     );
   }
 
-  // Modal para Multi-seleção de Tecnologias
   void _abrirSelecaoTecnologias() {
     showDialog(
       context: context,
@@ -195,18 +220,16 @@ class _ConfiguracaoContentState extends State<_ConfiguracaoContent> {
           content: SizedBox(
             width: double.maxFinite,
             child: _listaTecnologiasDB.isEmpty 
-              ? const Text("Nenhuma tecnologia cadastrada no banco.")
+              ? const Text("Nenhuma tecnologia cadastrada.")
               : ListView.builder(
                   shrinkWrap: true,
                   itemCount: _listaTecnologiasDB.length,
                   itemBuilder: (ctx, i) {
                     final tech = _listaTecnologiasDB[i];
-                    // Verifica se já está selecionado
                     final isSelected = _tecnologiasSelecionadas.any((t) => t['id'] == tech['id']);
                     
                     return CheckboxListTile(
                       title: Text(tech['nome']),
-                      subtitle: tech['categoria'] != null ? Text(tech['categoria']) : null,
                       value: isSelected,
                       onChanged: (val) {
                         setState(() {
@@ -217,8 +240,8 @@ class _ConfiguracaoContentState extends State<_ConfiguracaoContent> {
                           } else {
                             _tecnologiasSelecionadas.removeWhere((t) => t['id'] == tech['id']);
                           }
+                          projetoDraft.tecnologias = _tecnologiasSelecionadas;
                         });
-                        // Reconstrói apenas o diálogo para atualizar o checkbox visualmente
                         (ctx as Element).markNeedsBuild();
                       },
                     );
@@ -238,168 +261,199 @@ class _ConfiguracaoContentState extends State<_ConfiguracaoContent> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // HEADER "Informações Gerais"
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE3F2FD),
-            borderRadius: BorderRadius.circular(8),
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ... (Header visual igual)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            decoration: BoxDecoration(color: const Color(0xFFE3F2FD), borderRadius: BorderRadius.circular(8)),
+            child: Row(
+              children: const [
+                Icon(Icons.info_outline, color: Color(0xFF2962FF), size: 20),
+                SizedBox(width: 10),
+                Text("Informações Gerais", style: TextStyle(color: Color(0xFF1565C0), fontWeight: FontWeight.w500)),
+              ],
+            ),
           ),
-          child: Row(
-            children: const [
-              Icon(Icons.info_outline, color: Color(0xFF2962FF), size: 20),
-              SizedBox(width: 10),
-              Text(
-                "Informações Gerais",
-                style: TextStyle(color: Color(0xFF1565C0), fontWeight: FontWeight.w500),
+          const SizedBox(height: 24),
+
+          // 1. NOME
+          ComponentsConfiguracaoInicalProjeto.buildLabel("Nome do projeto", isRequired: true),
+          Container(
+            decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
+            child: TextFormField(
+              controller: _nomeCtrl,
+              decoration: ComponentsConfiguracaoInicalProjeto.inputDecoration("Ex: Sistema de Gestão ERP"),
+              onChanged: (val) => projetoDraft.nome = val,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 2. TIPO E MODELO
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ComponentsConfiguracaoInicalProjeto.buildLabel("Tipo", isRequired: true),
+                    Container(
+                      decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          hint: const Text("Selecione", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                          value: _tipoSelecionado,
+                          isExpanded: true,
+                          items: _opcoesTipo.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _tipoSelecionado = val;
+                              projetoDraft.tipo = val;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ComponentsConfiguracaoInicalProjeto.buildLabel("Modelo", isRequired: true),
+                    Container(
+                      decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          hint: const Text("Selecione", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                          value: _modeloSelecionado,
+                          isExpanded: true,
+                          items: _opcoesModelo.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _modeloSelecionado = val;
+                              projetoDraft.modelo = val;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 24),
+          
+          const SizedBox(height: 16),
 
-        // 1. NOME
-        ComponentsConfiguracaoInicalProjeto.buildLabel("Nome do projeto", isRequired: true),
-        Container(
-          decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
-          child: TextField(
-            controller: _nomeCtrl,
-            decoration: ComponentsConfiguracaoInicalProjeto.inputDecoration("Ex: Sistema de Gestão ERP"),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // 2. TIPO (Dropdown)
-        ComponentsConfiguracaoInicalProjeto.buildLabel("Tipo", isRequired: true),
-        Container(
-          decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              hint: const Text("Selecione (Web, Mobile...)", style: TextStyle(color: Colors.grey, fontSize: 13)),
-              value: _tipoSelecionado,
-              isExpanded: true,
-              items: _opcoesTipo.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-              onChanged: (val) => setState(() => _tipoSelecionado = val),
+          // 3. DESCRIÇÃO
+          ComponentsConfiguracaoInicalProjeto.buildLabel("Descrição"),
+          Container(
+            decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
+            child: TextFormField(
+              controller: _descCtrl,
+              maxLines: 4,
+              decoration: ComponentsConfiguracaoInicalProjeto.inputDecoration("Descreva o objetivo..."),
+              onChanged: (val) => projetoDraft.descricao = val,
             ),
           ),
-        ),
-        const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-        // 3. MODELO DE NEGÓCIO
-        ComponentsConfiguracaoInicalProjeto.buildLabel("Modelo de Negócio", isRequired: false),
-        Container(
-          decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
-          child: TextField(
-            controller: _modeloCtrl,
-            decoration: ComponentsConfiguracaoInicalProjeto.inputDecoration("Ex: SaaS, B2B, Marketplace"),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // 4. DESCRIÇÃO
-        ComponentsConfiguracaoInicalProjeto.buildLabel("Descrição"),
-        Container(
-          decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
-          child: TextField(
-            controller: _descCtrl,
-            maxLines: 4,
-            decoration: ComponentsConfiguracaoInicalProjeto.inputDecoration("Descreva brevemente o objetivo..."),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // 5. CLIENTE E METODOLOGIA
-        Row(
-          children: [
-            // Dropdown de Cliente
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ComponentsConfiguracaoInicalProjeto.buildLabel("Cliente", isRequired: true),
-                  Container(
-                    decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<dynamic>(
-                        hint: const Text("Selecione...", style: TextStyle(color: Colors.grey, fontSize: 13)),
-                        value: _clienteSelecionado,
-                        isExpanded: true,
-                        items: _listaClientesDB.map((c) {
-                          return DropdownMenuItem<dynamic>(
-                            value: c, // Objeto completo
-                            child: Text(
-                              c['razao_social'] ?? 'Sem Nome',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (val) => setState(() => _clienteSelecionado = val),
+          // 4. CLIENTE E METODOLOGIA
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ComponentsConfiguracaoInicalProjeto.buildLabel("Cliente", isRequired: true),
+                    Container(
+                      decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<dynamic>(
+                          hint: const Text("Selecione...", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                          value: _clienteSelecionado,
+                          isExpanded: true,
+                          items: _listaClientesDB.map((c) {
+                            return DropdownMenuItem<dynamic>(
+                              value: c, 
+                              child: Text(c['razao_social'] ?? 'Sem Nome', overflow: TextOverflow.ellipsis),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _clienteSelecionado = val;
+                              projetoDraft.cliente = val;
+                            });
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            
-            // Campo de Metodologia
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ComponentsConfiguracaoInicalProjeto.buildLabel("Metodologia"),
-                  Container(
-                    decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
-                    child: TextField(
-                      controller: _metodologiaCtrl,
-                      decoration: ComponentsConfiguracaoInicalProjeto.inputDecoration("Ex: Scrum, Kanban"),
-                    ),
-                  )
-                ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ComponentsConfiguracaoInicalProjeto.buildLabel("Metodologia"),
+                    Container(
+                      decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
+                      child: TextFormField(
+                        controller: _metodologiaCtrl,
+                        decoration: ComponentsConfiguracaoInicalProjeto.inputDecoration("Ex: Scrum"),
+                        onChanged: (val) => projetoDraft.metodologia = val,
+                      ),
+                    )
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-
-        // 6. TECNOLOGIAS (Multi-Select)
-        ComponentsConfiguracaoInicalProjeto.buildLabel("Tecnologias Utilizadas", isRequired: true),
-        GestureDetector(
-          onTap: _abrirSelecaoTecnologias,
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 50),
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
-            child: _tecnologiasSelecionadas.isEmpty
-                ? const Text("Toque para selecionar...", style: TextStyle(color: Colors.grey, fontSize: 13))
-                : Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: _tecnologiasSelecionadas.map((t) => Chip(
-                      label: Text(t['nome'], style: const TextStyle(fontSize: 11)),
-                      backgroundColor: Colors.blue[50],
-                      deleteIcon: const Icon(Icons.close, size: 12, color: Colors.blue),
-                      onDeleted: () {
-                         setState(() {
-                           _tecnologiasSelecionadas.removeWhere((item) => item['id'] == t['id']);
-                         });
-                      },
-                    )).toList(),
-                  ),
+            ],
           ),
-        ),
-        const SizedBox(height: 24),
-      ],
+          const SizedBox(height: 16),
+
+          // 5. TECNOLOGIAS (Multi-Select)
+          ComponentsConfiguracaoInicalProjeto.buildLabel("Tecnologias Utilizadas", isRequired: true),
+          GestureDetector(
+            onTap: _abrirSelecaoTecnologias,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 50),
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: ComponentsConfiguracaoInicalProjeto.inputBoxDecoration,
+              child: _tecnologiasSelecionadas.isEmpty
+                  ? const Text("Toque para selecionar...", style: TextStyle(color: Colors.grey, fontSize: 13))
+                  : Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: _tecnologiasSelecionadas.map((t) => Chip(
+                        label: Text(t['nome'], style: const TextStyle(fontSize: 11)),
+                        backgroundColor: Colors.blue[50],
+                        deleteIcon: const Icon(Icons.close, size: 12, color: Colors.blue),
+                        onDeleted: () {
+                           setState(() {
+                             _tecnologiasSelecionadas.removeWhere((item) => item['id'] == t['id']);
+                             projetoDraft.tecnologias = _tecnologiasSelecionadas;
+                           });
+                        },
+                      )).toList(),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
     );
   }
 }

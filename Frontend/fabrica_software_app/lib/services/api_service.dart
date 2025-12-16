@@ -243,4 +243,25 @@ class ApiService {
   static Future<List<dynamic>> getTecnologias() async => _get(ApiConfig.tecnologias);
   static Future<List<dynamic>> getContribuidores() async => _get(ApiConfig.contribuidores);
   static Future<List<dynamic>> getRecursos() async => _get(ApiConfig.recursos);
+
+  // Novo método para buscar os IDs das tecnologias do projeto
+  static Future<List<int>> getTecnologiasDoProjeto(int projetoId) async {
+    try {
+      // Ajuste a URL conforme sua rota no index.js: 
+      // app.get("/api/tecnologias-projeto/projeto/:projeto_id", ...)
+      final url = Uri.parse('${ApiConfig.baseUrl}/api/tecnologias-projeto/projeto/$projetoId');
+      
+      final response = await http.get(url, headers: ApiConfig.headers);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        // Retorna apenas uma lista de IDs (ex: [1, 5, 9])
+        return data.map<int>((item) => item['tecnologia_id'] as int).toList();
+      }
+      return [];
+    } catch (e) {
+      print("Erro ao buscar tecnologias do projeto: $e");
+      return [];
+    }
+  }
 }

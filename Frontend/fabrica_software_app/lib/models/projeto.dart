@@ -1,17 +1,17 @@
-import 'enums.dart';
+import 'package:fabrica_software_app/models/enums.dart'; // Certifique-se de ter seu enum criado
 
 class Projeto {
   final int? id;
   final String nomeProjeto;
   final String? descricao;
-  final String? tipo; // <--- NOVO CAMPO
+  final String? tipo; 
   final String? modeloProjeto;
   final String? metodologia;
   final String? escopo;
   final DateTime? dataInicio;
   final DateTime? dataFinalPrevisto;
   final DateTime? dataFinal;
-  final ComplexidadeProjeto? complexidade;
+  final ComplexidadeProjeto? complexidade; // Enum aqui
   final double? orcamentoEstimado;
   final DateTime? dataCriacao;
   final int clienteId;
@@ -23,7 +23,7 @@ class Projeto {
     this.id,
     required this.nomeProjeto,
     this.descricao,
-    this.tipo, // <--- NO CONSTRUTOR
+    this.tipo,
     this.modeloProjeto,
     this.metodologia,
     this.escopo,
@@ -39,7 +39,7 @@ class Projeto {
     required this.criadoPorId,
   });
 
-  // Getter para Status calculado
+  // Getter para Status visual
   String get statusCalculado {
     if (dataFinal != null) return 'Concluído';
     if (dataFinalPrevisto != null && DateTime.now().isAfter(dataFinalPrevisto!)) {
@@ -49,7 +49,7 @@ class Projeto {
   }
 
   factory Projeto.fromJson(Map<String, dynamic> json) {
-    // Helper para converter IDs com segurança (evita erro String vs int)
+    // Helper para converter inteiros com segurança
     int? parseInt(dynamic value) {
       if (value == null) return null;
       if (value is int) return value;
@@ -57,11 +57,23 @@ class Projeto {
       return null;
     }
 
+    // Helper para converter String -> Enum
+    ComplexidadeProjeto? parseComplexidade(String? value) {
+      if (value == null) return null;
+      try {
+        return ComplexidadeProjeto.values.firstWhere(
+          (e) => e.name.toLowerCase() == value.toLowerCase()
+        );
+      } catch (e) {
+        return null;
+      }
+    }
+
     return Projeto(
       id: parseInt(json['id']),
-      nomeProjeto: json['nome_projeto'],
+      nomeProjeto: json['nome_projeto'] ?? 'Sem Nome',
       descricao: json['descricao'],
-      tipo: json['tipo'], // <--- LENDO DO JSON
+      tipo: json['tipo'],
       modeloProjeto: json['modelo_projeto'],
       metodologia: json['metodologia'],
       escopo: json['escopo'],
@@ -76,9 +88,7 @@ class Projeto {
           ? DateTime.tryParse(json['data_final'].toString()) 
           : null,
           
-      complexidade: json['complexidade'] != null 
-          ? ComplexidadeProjeto.fromString(json['complexidade'])
-          : null,
+      complexidade: parseComplexidade(json['complexidade']), // Uso do helper
           
       orcamentoEstimado: json['orcamento_estimado'] != null 
           ? double.tryParse(json['orcamento_estimado'].toString())
@@ -100,14 +110,14 @@ class Projeto {
       'id': id,
       'nome_projeto': nomeProjeto,
       'descricao': descricao,
-      'tipo': tipo, // <--- ENVIANDO PARA O JSON
+      'tipo': tipo,
       'modelo_projeto': modeloProjeto,
       'metodologia': metodologia,
       'escopo': escopo,
       'data_inicio': dataInicio?.toIso8601String(),
       'data_final_previsto': dataFinalPrevisto?.toIso8601String(),
       'data_final': dataFinal?.toIso8601String(),
-      'complexidade': complexidade?.toString().split('.').last,
+      'complexidade': complexidade?.name, // Converte Enum -> String ('alta', 'media')
       'orcamento_estimado': orcamentoEstimado,
       'data_criacao': dataCriacao?.toIso8601String(),
       'cliente_id': clienteId,

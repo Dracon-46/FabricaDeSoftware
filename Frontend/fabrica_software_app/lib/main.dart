@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:fabrica_software_app/models/recurso.dart';
+import 'package:fabrica_software_app/models/teste.dart';
 import 'package:fabrica_software_app/models/usuario.dart';
 import 'package:fabrica_software_app/providers/recursos_provider.dart';
 import 'package:fabrica_software_app/providers/tecnologias_provider.dart';
@@ -10,6 +11,7 @@ import 'package:fabrica_software_app/screens/Equipe/Gerenciar_Equipes_Screen.dar
 import 'package:fabrica_software_app/screens/Recursos/Recursos.dart';
 import 'package:fabrica_software_app/screens/Relatorio/Relatorio_Screen.dart';
 import 'package:fabrica_software_app/screens/Tecnologias/Tecnologias.dart';
+import 'package:fabrica_software_app/screens/Tests/Teste_screen.dart';
 import 'package:fabrica_software_app/screens/Usuarios/usuarios.dart';
 // ignore: unused_import
 import 'package:fabrica_software_app/services/requisito_service.dart';
