@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart'; 
 import 'package:fabrica_software_app/screens/Documento/Documentos_Projeto_Screen.dart';
+// Import da tela de recursos
+import 'package:fabrica_software_app/screens/Recursos/Recursos.dart'; 
+
 class VisualizarProjetoScreen extends StatelessWidget {
   final Projeto projeto;
 
@@ -58,20 +61,18 @@ class VisualizarProjetoScreen extends StatelessWidget {
           ],
         ),
       ),
-      // MUDANÇA AQUI: Scroll View ocupa a tela toda, mas o conteúdo é centralizado e limitado
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1300), // <--- LIMITA A LARGURA EM TELAS GRANDES
+            constraints: const BoxConstraints(maxWidth: 1300),
             child: Padding(
-              padding: const EdgeInsets.all(32.0), // <--- MAIS RESPIRO NAS BORDAS
+              padding: const EdgeInsets.all(32.0),
               child: Column(
                 children: [
                   // ========================================================
                   // 1. SEÇÃO BENTO GRID
                   // ========================================================
                   LayoutBuilder(builder: (context, constraints) {
-                    // Ajustei o breakpoint para 850 para quebrar antes se tiver muito zoom
                     if (constraints.maxWidth > 850) {
                       return IntrinsicHeight(
                         child: Row(
@@ -234,7 +235,6 @@ class VisualizarProjetoScreen extends StatelessWidget {
                   // ========================================================
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      // Se a tela for larga (>800), exibe em 2 colunas
                       final isDesktop = constraints.maxWidth > 800;
                       return GridView.count(
                         crossAxisCount: isDesktop ? 2 : 1,
@@ -242,9 +242,10 @@ class VisualizarProjetoScreen extends StatelessWidget {
                         mainAxisSpacing: 20,
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        // Ajuste fino do AspectRatio para os cards não ficarem esticados demais
                         childAspectRatio: isDesktop ? 2.5 : 1.6,
                         children: [
+                          
+                          // --- CARD RECURSOS (ATUALIZADO) ---
                           _DashboardInfoCard(
                             title: "Gestão de Recursos",
                             icon: Icons.people,
@@ -255,31 +256,37 @@ class VisualizarProjetoScreen extends StatelessWidget {
                               {"label": "Product Owner", "value": "1 membro"},
                             ],
                             buttonText: "Ver Recursos",
-                            onPressed: () {},
+                            // NAVEGAÇÃO PASSANDO O PROJETO
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Recursos(projetoVinculado: projeto),
+                                ),
+                              );
+                            },
                           ),
+                          // ----------------------------------
+
                           _DashboardInfoCard(
-                      title: "Documentação e Artefatos",
-                      icon: Icons.folder,
-                      themeColor: const Color(0xFF16A34A),
-                      stats: const [
-                        // Esses dados são estáticos por enquanto, no futuro podemos puxar do banco
-                        {"label": "Documentos", "value": "Acessar"}, 
-                        {"label": "Repositório", "value": "Drive"},
-                      ],
-                      buttonText: "Ver Documentos",
-                      
-                      // --- AQUI ESTÁ A MUDANÇA ---
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DocumentosProjetoScreen(projeto: projeto),
+                            title: "Documentação e Artefatos",
+                            icon: Icons.folder,
+                            themeColor: const Color(0xFF16A34A),
+                            stats: const [
+                              {"label": "Documentos", "value": "Acessar"}, 
+                              {"label": "Repositório", "value": "Drive"},
+                            ],
+                            buttonText: "Ver Documentos",
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DocumentosProjetoScreen(projeto: projeto),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                      // ---------------------------
-                    ),
-                                  // --- CARD TREINAMENTOS (CORRIGIDO) ---
+
                           _DashboardInfoCard(
                             title: "Relatórios de Treinamentos",
                             icon: FontAwesomeIcons.graduationCap,
@@ -290,7 +297,6 @@ class VisualizarProjetoScreen extends StatelessWidget {
                               {"label": "Frequência", "value": "Sheets"},
                             ],
                             buttonText: "Ver Treinamentos",
-                            // NAVEGAÇÃO PARA A LISTA
                             onPressed: () {
                               Navigator.push(
                                 context,
@@ -300,7 +306,6 @@ class VisualizarProjetoScreen extends StatelessWidget {
                               );
                             },
                           ),
-                          // -------------------------------------
 
                           _DashboardInfoCard(
                             title: "Relatórios de Testes",
@@ -344,7 +349,7 @@ class VisualizarProjetoScreen extends StatelessWidget {
 }
 
 // ============================================================================
-// WIDGETS AUXILIARES (MANTIDOS IGUAIS)
+// WIDGETS AUXILIARES (IGUAIS AO ANTERIOR)
 // ============================================================================
 
 class _BentoCard extends StatelessWidget {

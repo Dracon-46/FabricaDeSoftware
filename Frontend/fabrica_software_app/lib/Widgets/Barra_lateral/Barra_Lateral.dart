@@ -104,13 +104,6 @@ class BarraLateral extends StatelessWidget {
                 ),
                 _buildMenuItem(
                   context,
-                  icon: FontAwesomeIcons.cubes,
-                  text: 'Gestão de Recursos',
-                  rotaDestino: '/Recursos',
-                  rotaAtual: rotaAtual,
-                ),
-                _buildMenuItem(
-                  context,
                   icon: FontAwesomeIcons.microchip,
                   text: 'Gestão de Tecnologias',
                   rotaDestino: '/Tecnologias',

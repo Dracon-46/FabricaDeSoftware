@@ -119,8 +119,6 @@ class ListaTreinamentosScreen extends StatelessWidget {
               // Título
               Text(t['nome'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
               const SizedBox(width: 12),
-              
-
               const Spacer(), // Empurra o botão para a direita
 
               // Botão "Lista de Chamada" Azul
