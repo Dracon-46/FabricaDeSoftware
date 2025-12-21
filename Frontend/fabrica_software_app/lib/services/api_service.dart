@@ -118,22 +118,25 @@ class ApiService {
     // 1. Criar Projeto Pai na tabela 'projetos'
     final uriProjeto = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.projetos}');
     
+    // Use os valores passados em dtoData quando disponíveis. Mantém compatibilidade
+    // com chaves antigas (`tipo`) caso o caller ainda as envie.
     final projetoPayload = {
       "nome_projeto": dtoData['nome_projeto'],
       "descricao": dtoData['descricao'],
-      // Novos campos adicionados:
-      "modelo_projeto": dtoData['modelo_projeto'], 
-      "tipo_projeto": dtoData['tipo_projeto'], // Mapeado do DTO.tipo
+      "modelo_projeto": dtoData['modelo_projeto'],
+      // aceita 'tipo_projeto' ou 'tipo'
+      "tipo_projeto": dtoData['tipo_projeto'] ?? dtoData['tipo'],
       "escopo": dtoData['escopo'],                 
       "complexidade": dtoData['complexidade'],     
-      
       "cliente_id": dtoData['cliente_id'],
       "metodologia": dtoData['metodologia'],
       "orcamento_estimado": dtoData['orcamento_estimado'],
       "data_inicio": dtoData['data_inicio'],
       "data_final_previsto": dtoData['data_final_previsto'],
-      "criado_por_id": 1, // TODO: Obter dinamicamente do usuário logado se possível
-      "responsavel_id": 1 
+      // Usa o ID do criador enviado ou fallback para responsavel ou 0
+      "criado_por_id": dtoData['criado_por_id'] ?? dtoData['responsavel_id'] ?? 0,
+      // Usa o ID do responsavel enviado ou fallback para criador
+      "responsavel_id": dtoData['responsavel_id'] ?? dtoData['criado_por_id'] ?? 0
     };
 
     print("Enviando Projeto Payload: $projetoPayload");
@@ -161,7 +164,8 @@ class ApiService {
             "projeto_id": projetoId,
             "tecnologia_id": _parseId(techId),
             "data_aprovacao": DateTime.now().toIso8601String(),
-            "aprovado_por_id": 1
+            // tenta usar quem criou o projeto como aprovador, se fornecido
+            "aprovado_por_id": dtoData['criado_por_id'] ?? dtoData['responsavel_id'] ?? 0
           })
         );
       }
@@ -219,15 +223,15 @@ class ApiService {
           final reqId = _parseId(reqCriado['id']);
 
           // Passo d2: Vincular na tabela 'requisitos_projeto'
-          await http.post(
+            await http.post(
             Uri.parse('${ApiConfig.baseUrl}${ApiConfig.requisitosProjeto}'),
             headers: headers,
             body: jsonEncode({
               "projeto_id": projetoId,
               "requisito_id": reqId,
-              "prioridade": req['prioridade'].toString().toLowerCase(), // Enum geralmente é lowercase
+              "prioridade": req['prioridade'].toString().toLowerCase(),
               "codigo_requisito": "REQ-${DateTime.now().millisecondsSinceEpoch}",
-              "criado_por_id": 1
+              "criado_por_id": dtoData['criado_por_id'] ?? dtoData['responsavel_id'] ?? 0
             })
           );
         }
